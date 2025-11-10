@@ -5,7 +5,7 @@ const ENVIRONMENTS = {
         debug: true,
     },
     production: {
-        apiUrl: 'http://localhost:5133',
+        apiUrl: 'https://apipracticajuegos-crcxccchdhd0dcag.eastus2-01.azurewebsites.net',
         debug: false
     }
 };
