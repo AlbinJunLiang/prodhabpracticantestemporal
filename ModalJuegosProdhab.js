@@ -15,7 +15,7 @@
 
         async function openAutoModal(etiqueta) {
           try {
-            await loadCSS("testets.css"); // tu CSS externo
+            await loadCSS("https://raw.githubusercontent.com/AlbinJunLiang/prodhabpracticantestemporal/main/testets.css"); // tu CSS externo
           } catch {
             console.warn("No se pudo cargar el CSS externo");
           }
@@ -74,4 +74,5 @@
         }
 
         return { openAutoModal };
+
       })();
