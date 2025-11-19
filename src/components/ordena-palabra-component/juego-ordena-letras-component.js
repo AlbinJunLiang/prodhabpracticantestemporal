@@ -1,9 +1,11 @@
-class JuegoOrdenaLetras extends HTMLElement {
+import { obtenerTextoYPalabras } from "../../services/ordenaLetrasService.js";
+import { escapeAttr } from "../../util/juegoFunctionUtility.js";
+
+export class JuegoOrdenaLetras extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-
-    this.currentCard = 0; // índice de la carta activa
+    this.currentCard = 0;
     this.idOrdenar = null;
 
   }
@@ -22,17 +24,16 @@ class JuegoOrdenaLetras extends HTMLElement {
     let inicioVideoSrc = this.getAttribute("inicio-video-src");
     let detalle = this.getAttribute("detalle");
     // Llamar al servicio siempre que exista
-    if (OrdenaLetrasService?.obtenerTextoYPalabras) {
-      const textoYPalabras = await OrdenaLetrasService.obtenerTextoYPalabras(parseInt(this.idOrdenar));
-      this.idOrdenar = textoYPalabras.idJuego;
-      palabrasArray = palabrasArray || textoYPalabras.palabras || ["ejemplo"];
-      introText = introText || textoYPalabras.texto || "Este es un texto de ejemplo.";
-      tema = tema || textoYPalabras.tema || "Juego no disponible";
-      detalle = detalle || textoYPalabras.detalle || "Juego no disponible";
+    const textoYPalabras = await obtenerTextoYPalabras(parseInt(this.idOrdenar));
+    this.idOrdenar = textoYPalabras.idJuego;
+    palabrasArray = palabrasArray || textoYPalabras.palabras || ["ejemplo"];
+    introText = introText || textoYPalabras.texto || "Este es un texto de ejemplo.";
+    tema = tema || textoYPalabras.tema || "Juego no disponible";
+    detalle = detalle || textoYPalabras.detalle || "Juego no disponible";
 
-      videoFinalSrc = videoFinalSrc || textoYPalabras.videoFinalSrc || "video1.webm";
-      inicioVideoSrc = inicioVideoSrc || textoYPalabras.inicioVideoSrc || "video2.webm";
-    }
+    videoFinalSrc = videoFinalSrc || textoYPalabras.videoFinalSrc || "video1.webm";
+    inicioVideoSrc = inicioVideoSrc || textoYPalabras.inicioVideoSrc || "video2.webm";
+
 
     this.setAttribute("palabras", JSON.stringify(palabrasArray));
     this.setAttribute("intro-text", introText);
@@ -40,24 +41,23 @@ class JuegoOrdenaLetras extends HTMLElement {
     this.setAttribute("video-final-src", videoFinalSrc);
     this.setAttribute("inicio-video-src", inicioVideoSrc);
 
-    // 🔹 Ahora renderizas tu shadow DOM usando estas variables
 
 
 
     // Renderizar el contenido del shadow DOM
-this.shadowRoot.innerHTML = `
+    this.shadowRoot.innerHTML = `
   <style>
     :host {
       display: block;
       width: 100%;
-      min-height: 100vh; /* Asegura que ocupe al menos la pantalla */
+      min-height: 100vh; 
     }
 
     .game-container {
       position: relative;
       width: 100%;
       max-width: 600px;
-      min-height: 80vh;        /* Altura mínima consistente */
+      min-height: 80vh;    
       margin: 0 auto;
       padding: 5px;
       box-sizing: border-box;
@@ -100,23 +100,23 @@ this.shadowRoot.innerHTML = `
   <div class="game-container">
     <div class="cards-wrapper">
       <div class="card active">
-        <intro-adivina-component 
-          intro-title="${detalle}" 
-          video-src="${inicioVideoSrc}" 
-          data-texto="${introText}"
-          style="width: 100%; height: 100%;">
-        </intro-adivina-component>
+<intro-adivina-component 
+  intro-title="${escapeAttr(detalle)}" 
+  video-src="${escapeAttr(inicioVideoSrc)}" 
+  data-texto="${escapeAttr(introText)}"
+  style="width: 100%; height: 100%;">
+</intro-adivina-component>
       </div>
 
       <div class="card">
-        <ordena-letras-component 
-          style="width: 100%; height: 100%;"
-          video-final-src="${videoFinalSrc}"
-          words='${JSON.stringify(palabrasArray)}'
-          intro-text="${introText}"
-          id-ordenar="${this.idOrdenar}"
-          tema="${tema}">
-        </ordena-letras-component>
+     <ordena-letras-component 
+  style="width: 100%; height: 100%;"
+  video-final-src="${escapeAttr(videoFinalSrc)}"
+  words='${escapeAttr(JSON.stringify(palabrasArray))}'
+  intro-text="${escapeAttr(introText)}"
+  id-ordenar="${escapeAttr(this.idOrdenar)}"
+  tema="${escapeAttr(tema)}">
+</ordena-letras-component>
       </div>
     </div>
   </div>

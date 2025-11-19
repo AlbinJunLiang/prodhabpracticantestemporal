@@ -1,4 +1,4 @@
-class ModalSopa extends HTMLElement {
+export  class ModalSopa extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -219,7 +219,6 @@ class ModalSopa extends HTMLElement {
       if (e.target === this.modal) this.close();
     });
 
-    // Inicializar atributos
     ["title", "img", "video", "link", "no-animation", "no-background"].forEach(attr => {
       this.attributeChangedCallback(attr, null, this.hasAttribute(attr) ? this.getAttribute(attr) || "" : null);
     });

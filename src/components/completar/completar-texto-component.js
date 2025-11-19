@@ -1,11 +1,13 @@
-class CompletarTextoComponent extends HTMLElement {
+import { obtenerRondas } from "../../services/completarTextoService.js";
+import { registrarJuego } from "../../services/resultadoJuegoService.js";
+import { mezclar } from "../../util/juegoFunctionUtility.js";
+
+export class CompletarTextoComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
 
     this.rondas = [];
-
-
     this.indiceRonda = -1;
     this.enTransicion = false;
     this.tiempoInicio = null;
@@ -24,300 +26,313 @@ class CompletarTextoComponent extends HTMLElement {
     this.shadowRoot.innerHTML = `
           <style>
             :host {
-              --primario: #1f4388;
-              --acento: #2563eb;
-              --oscuro: #1e355e;
-              --error: rgb(242,218,177);
-              --claro: #eef2ff;
-            }
+  --primario: #1f4388;
+  --acento: #2563eb;
+  --oscuro: #1e355e;
+  --error: rgb(242, 218, 177);
+  --claro: #eef2ff;
+}
 
-            * { box-sizing: border-box;
-                    font-family: "Raleway", sans-serif;
+* {
+  box-sizing: border-box;
+  font-family: "Raleway", sans-serif;
+}
 
-             }
+.aplicacion {
+  width: 100%;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  transition: opacity 0.5s;
+  margin: 0 auto;
+  display: block;
+}
 
-            .aplicacion {
-              width: 100%;
-              max-width: 900px;
-              background: #fff;
-              border-radius: 16px;
-              padding: 24px;
-              box-shadow: 0 10px 25px rgba(0,0,0,0.06);
-              transition: opacity 0.5s;
-              margin: 0 auto;         
-              display: block;         
-            }
+h2 {
+  color: var(--primario);
+  text-align: center;
+  margin: 0 0 20px 0;
+}
 
-            h2 {
-              color: var(--primario);
-              text-align: center;
-              margin: 0 0 20px 0;
-            }
+.pantalla-inicio {
+  display: none;
+  text-align: center;
+  animation: aparecerDentro 0.5s ease-in;
+}
 
-            .pantalla-inicio {
-              display: none;
-              text-align: center;
-              animation: aparecerDentro 0.5s ease-in;
-            }
+.pantalla-inicio.activa {
+  display: block;
+}
 
-            .pantalla-inicio.activa {
-              display: block;
-            }
+.pantalla-inicio h2 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
 
-            .pantalla-inicio h2 {
-              font-size: 1.8rem;
-              margin-bottom: 20px;
-            }
+.pantalla-inicio p {
+  font-size: 1rem;
+  margin: 15px 0;
+  line-height: 1.6;
+}
 
-            .pantalla-inicio p {
-              font-size: 1rem;
-              margin: 15px 0;
-              line-height: 1.6;
-            }
+.boton-iniciar {
+  padding: 12px 32px;
+  background: rgb(25, 41, 82);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: bold;
+  transition: background 0.2s, transform 0.2s;
+}
 
-            .boton-iniciar {
-              padding: 12px 32px;
-              background: rgb(25,41,82);
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 1.1rem;
-              font-weight: bold;
-              transition: background 0.2s, transform 0.2s;
-            }
+.boton-iniciar:hover {
+  background: rgb(0, 53, 160);
+  transform: scale(1.05);
+}
 
-            .boton-iniciar:hover {
-              background: rgb(0,53,160);
-              transform: scale(1.05);
-            }
+.boton-iniciar:active {
+  transform: scale(0.95);
+}
 
-            .boton-iniciar:active {
-              transform: scale(0.95);
-            }
+.contenedor-texto {
+  margin: 20px 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  user-select: none;
+}
 
-            .contenedor-texto {
-              margin: 20px 0;
-              font-size: 1.1rem;
-              line-height: 1.6;
-              user-select: none;
-            }
+.espacio {
+  display: inline-block;
+  min-width: 50px;
+  border-bottom: 2px solid var(--acento);
+  margin: 0 2px;
+  vertical-align: text-bottom;
+  text-align: center;
+  color: #231d1dff;
+  font-size: 1rem;
+  line-height: 1.2;
+  background: transparent;
+  padding: 0;
+}
 
-            .espacio {
-              display: inline-block;
-              min-width: 50px;
-              border-bottom: 2px solid var(--acento);
-              margin: 0 2px;
-              vertical-align: text-bottom;
-              text-align: center;
-              color: #231d1dff;
-              font-size: 1rem;
-              line-height: 1.2;
-              background: transparent;
-              padding: 0;
-            }
+.espacio.relleno {
+  background: transparent;
+  border-color: #eaeaeaff;
+  color: #000;
+}
 
-            .espacio.relleno {
-              background: transparent;
-              border-color: #eaeaeaff;
-              color: #000;
-            }
+.contenedor-palabras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
 
-            .contenedor-palabras {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 12px;
-              margin-top: 20px;
-            }
+.palabra {
+  padding: 6px 12px;
+  background: var(--oscuro);
+  color: white;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  user-select: none;
+  border: none;
+  font-size: 1rem;
+}
 
-            .palabra {
-              padding: 6px 12px;
-              background: var(--oscuro);
-              color: white;
-              border-radius: 12px;
-              cursor: pointer;
-              transition: transform 0.2s;
-              user-select: none;
-              border: none;
-              font-size: 1rem;
-            }
+.palabra:active {
+  transform: scale(1.05);
+}
 
-            .palabra:active {
-              transform: scale(1.05);
-            }
+.palabra:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-            .palabra:disabled {
-              opacity: 0.5;
-              cursor: not-allowed;
-            }
+.pie-pagina {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 1rem;
+  color: #65656a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
 
-            .pie-pagina {
-              margin-top: 16px;
-              text-align: center;
-              font-size: 1rem;
-              color: #65656a;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              gap: 16px;
-            }
+.boton-reiniciar {
+  padding: 8px 16px;
+  background: #04205d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
 
-            .boton-reiniciar {
-              padding: 8px 16px;
-              background: #04205d;
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 0.9rem;
-              transition: background 0.2s;
-            }
+.boton-reiniciar:hover {
+  background: #021034;
+}
 
-            .boton-reiniciar:hover {
-              background: #021034;
-            }
+.boton-reiniciar:active {
+  transform: scale(0.95);
+}
 
-            .boton-reiniciar:active {
-              transform: scale(0.95);
-            }
+.pantalla-finalizacion {
+  display: none;
+  text-align: center;
+  animation: aparecerDentro 0.5s ease-in;
+  position: relative;
+  overflow: hidden;
+}
 
-            .pantalla-finalizacion {
-              display: none;
-              text-align: center;
-              animation: aparecerDentro 0.5s ease-in;
-              position: relative;
-              overflow: hidden;
-            }
+.pantalla-finalizacion.activa {
+  display: block;
+}
 
-            .pantalla-finalizacion.activa {
-              display: block;
-            }
+.pantalla-finalizacion h2 {
+  color: #02297b;
+  font-size: 2rem;
+  margin: 20px 0;
+}
 
-            .pantalla-finalizacion h2 {
-              color: #02297b;
-              font-size: 2rem;
-              margin: 20px 0;
-            }
+.temporizador {
+  font-size: 1.5rem;
+  color: #04205d;
+  margin: 20px 0;
+  font-weight: bold;
+}
 
-            .temporizador {
-              font-size: 1.5rem;
-              color: #04205d;
-              margin: 20px 0;
-              font-weight: bold;
-            }
+.pantalla-finalizacion p {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin: 20px 0;
+}
 
-            .pantalla-finalizacion p {
-              font-size: 1.1rem;
-              color: #64748b;
-              margin: 20px 0;
-            }
+.confeti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  background: #2563eb;
+}
 
-            .confeti {
-              position: absolute;
-              width: 10px;
-              height: 10px;
-              pointer-events: none;
-              background: #2563eb;
-            }
+.instrucciones {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
 
-            .instrucciones{
-             font-size: 1.1rem;   
-  font-weight: 600;   
-            }
+.instrucciones,
+.detalle {
+  color: rgb(101, 101, 106);
+}
 
-            .instrucciones, .detalle {
-              color: rgb(101,101,106);
-            }
+.desvanecerse-dentro {
+  animation: desvanecerseDentro 0.6s ease-out;
+}
+.desvanecerse-fuera {
+  animation: desvanecerseFuera 0.6s ease-in;
+}
 
-            .desvanecerse-dentro { animation: desvanecerseDentro 0.6s ease-out; }
-            .desvanecerse-fuera { animation: desvanecerseFuera 0.6s ease-in; }
+.contenedor-imagen-boton {
+  position: relative;
+  text-align: center;
+  height: 250px; 
+}
 
-            .contenedor-imagen {
-              text-align: center;
-              position: relative;
-              top: 15px;
-              z-index: 1;
-            }
+.contenedor-imagen {
+  position: relative;
+  width: 100%;
+  height: 98px;
+}
 
-            .imagen-intro {
-              width: 200px;
-              display: block;
-              margin: 0 auto;
-            }
+.imagen-intro {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  pointer-events: none;
+  z-index: 10;
+}
 
-            @keyframes aparecerDentro {
-              from { 
-                opacity: 0;
-                transform: translateY(20px);
-              }
-              to { 
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
+@keyframes aparecerDentro {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-            @keyframes desvanecerseDentro {
-              from { 
-                opacity: 0;
-                transform: translateY(20px);
-              }
-              to { 
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
+@keyframes desvanecerseDentro {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-            @keyframes desvanecerseFuera {
-              from { 
-                opacity: 1;
-                transform: translateY(0);
-              }
-              to { 
-                opacity: 0;
-                transform: translateY(-20px);
-              }
-            }
+@keyframes desvanecerseFuera {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
 
-            @keyframes caer {
-              to {
-                transform: translateY(100vh) rotateZ(360deg);
-                opacity: 0;
-              }
-            }
+@keyframes caer {
+  to {
+    transform: translateY(100vh) rotateZ(360deg);
+    opacity: 0;
+  }
+}
 
-            @media (max-width: 600px) {
-              .espacio {
-                min-width: 60px;
-                min-height: 20px;
-                line-height: 20px;
-                font-size: 0.9rem;
-                padding: 3px 6px;
-              }
-              .palabra {
-                padding: 6px 10px;
-                font-size: 0.9rem;
-              }
-              .aplicacion {
-                padding: 16px;
-              }
-              .pantalla-inicio h2 {
-                font-size: 1.8rem;
-              }
-              .pantalla-inicio p {
-                font-size: 1rem;
-              }
-                
-            }
+@media (max-width: 600px) {
+  .espacio {
+    min-width: 60px;
+    min-height: 20px;
+    line-height: 20px;
+    font-size: 0.9rem;
+    padding: 3px 6px;
+  }
+  .palabra {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+  .aplicacion {
+    padding: 16px;
+  }
+  .pantalla-inicio h2 {
+    font-size: 1.8rem;
+  }
+  .pantalla-inicio p {
+    font-size: 1rem;
+  }
+}
+
           </style>
 
           <div class="aplicacion pantalla-inicio activa" id="pantallaInicio">
             <h2 id="titulo-juego"></h2>
             <p id="detalles-juego" class="detalle"></p>
             <p class="instrucciones">Rellena los espacios en blanco con las palabras correctas.</p>
-            <div class="contenedor-imagen">
-              <img src="${imgIntro}" alt="Descripción de la imagen" class="imagen-intro">
-            </div>
-            <button class="boton-iniciar" id="btnIniciar">Comenzar Juego</button>
+
+            <div class="contenedor-imagen"> <img src="${imgIntro}" class="imagen-intro"> </div> <button class="boton-iniciar" id="btnIniciar">Comenzar Juego</button>
+
           </div>
 
           <div class="aplicacion desvanecerse-dentro" id="aplicacion" style="position: relative; display: none; padding: 20px; border: 1px solid #ccc;">
@@ -347,19 +362,18 @@ class CompletarTextoComponent extends HTMLElement {
     const tituloJuego = this.shadowRoot.getElementById("titulo-juego");
     const detallesJuego = this.shadowRoot.getElementById("detalles-juego");
 
-    tituloJuego.innerHTML = "Cargando...";
+    tituloJuego.textContent = "Cargando...";
     detallesJuego.innerText = "...";
     this.idCompletar = this.getAttribute('id-completar') || null;
-    const data = await completarTextoService.obtenerRondas(Number(this.idCompletar));
+    const data = await obtenerRondas(Number(this.idCompletar));
     this.idCompletar = data.idJuego;
-    this.rondas = data.rondas;  // carga directa
-    tituloJuego.innerHTML = data.descripcion;
-    detallesJuego.innerHTML = data.detalle;
+    this.rondas = data.rondas;
+    tituloJuego.textContent = data.descripcion;
+    detallesJuego.innerText = data.detalle;
     const pantallaInicio = this.shadowRoot.getElementById("pantallaInicio");
 
 
     if (!this.rondas || this.rondas.length === 0) {
-      // Mostrar mensaje de error
       const mensajeError = document.createElement("p");
       mensajeError.textContent = "No hay rondas disponibles en este momento.";
       mensajeError.style.color = "#c74b27";
@@ -367,7 +381,6 @@ class CompletarTextoComponent extends HTMLElement {
       mensajeError.style.marginTop = "20px";
       pantallaInicio.appendChild(mensajeError);
 
-      // Deshabilitar botón de iniciar
       const btnIniciar = this.shadowRoot.getElementById("btnIniciar");
       btnIniciar.disabled = true;
       btnIniciar.style.opacity = "0.5";
@@ -464,13 +477,11 @@ class CompletarTextoComponent extends HTMLElement {
     }
 
     this.espaciosActuales = espacios;
-    this.enProceso = false; // Flag para evitar clics simultáneos
+    this.enProceso = false;
 
-    // Crear la lista de palabras: correctas + distractores
     const todasLasPalabras = [...ronda.espacios, ...ronda.distractores];
 
-    // Mezclar SOLO PARA VISUALIZACIÓN
-    const palabrasMezcladas = this.mezclar([...todasLasPalabras]);
+    const palabrasMezcladas = mezclar([...todasLasPalabras]);
 
     palabrasMezcladas.forEach((palabra, indice) => {
       const btn = document.createElement("button");
@@ -479,30 +490,24 @@ class CompletarTextoComponent extends HTMLElement {
       btn.dataset.indiceBoton = indice;
 
       btn.addEventListener("click", () => {
-        // Evitar clics si ya hay uno en proceso
         if (this.enProceso) return;
         if (btn.disabled) return;
 
-        // Obtener el PRIMER espacio vacío (orden de selección)
         const primerEspacioVacio = espacios.find(e => !e.classList.contains("relleno"));
 
         if (!primerEspacioVacio) return;
 
-        // Verificar si la palabra es correcta PARA EL PRIMER ESPACIO VACÍO
         if (palabra.toLowerCase() !== primerEspacioVacio.dataset.respuesta.toLowerCase()) {
-          // Feedback: palabra incorrecta (sin bloquear el flujo)
           primerEspacioVacio.style.background = "#fee2e2";
           setTimeout(() => primerEspacioVacio.style.background = "transparent", 300);
           return;
         }
 
-        // Ahora sí, bloquear y procesar
         this.enProceso = true;
         btn.disabled = true;
         btn.style.opacity = "0.5";
         btn.style.cursor = "not-allowed";
 
-        // Mover la palabra al espacio correcto
         this.moverPalabraAEspacio(btn, primerEspacioVacio);
       });
 
@@ -536,7 +541,6 @@ class CompletarTextoComponent extends HTMLElement {
       clon.remove();
       elementoPalabra.remove();
 
-      // Resetear flag y verificar ronda
       setTimeout(() => {
         this.enProceso = false;
         this.verificarRondaCompleta();
@@ -571,13 +575,7 @@ class CompletarTextoComponent extends HTMLElement {
     }
   }
 
-  mezclar(a) {
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
+
 
   reiniciarJuego() {
     this.indiceRonda = -1;
@@ -620,7 +618,7 @@ class CompletarTextoComponent extends HTMLElement {
 
     this.crearConfeti();
     this.adjuntarOyenteReiniciar();
-    await resultadoJuegoService.registrarJuego(Number(this.getAttribute("id-completar")) || this.idCompletar || null);
+    await registrarJuego(Number(this.getAttribute("id-completar")) || this.idCompletar || null);
 
   }
 

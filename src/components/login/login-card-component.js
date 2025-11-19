@@ -1,4 +1,4 @@
-class LoginCardComponent extends HTMLElement {
+export class LoginCardComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -84,7 +84,7 @@ class LoginCardComponent extends HTMLElement {
         }
         button.btn { 
           width: 100%; 
-  background: var(--accent, #1f4388); /* usa la variable --accent, fallback por si no se define */
+  background: var(--accent, #1f4388);
           color: #fff; 
           border: none; 
           padding: 10px; 
@@ -97,16 +97,16 @@ class LoginCardComponent extends HTMLElement {
         button.btn:hover { 
           background: #3728b9; 
         }
-        .recover { 
+        .user-option { 
           text-align: center; 
           margin-top: 12px; 
         }
-        .recover a { 
+        .user-option a { 
           color: var(--accent); 
           text-decoration: none; 
           font-size: 0.9rem; 
         }
-        .recover a:hover { 
+        .user-option a:hover { 
           text-decoration: underline; 
         }
         .password-error { 
@@ -148,7 +148,8 @@ class LoginCardComponent extends HTMLElement {
             <div id="passwordError" class="password-error"></div>
 
             <button type="submit" class="btn">Entrar</button>
-            <div class="recover"><a href="#">¿Olvidaste tu contraseña?</a></div>
+            <div class="user-option"><a id="id-recovery" href="#">¿Olvidaste tu contraseña?</a><a id="id-config" href="#"> | Ajuste</a></div>
+
           </form>
         </div>
       </div>
@@ -165,19 +166,33 @@ class LoginCardComponent extends HTMLElement {
     this._onSubmit = this._onSubmit.bind(this);
     this._onTogglePass = this._onTogglePass.bind(this);
     this._onPasswordInput = this._onPasswordInput.bind(this);
+    this._recovery = this.shadowRoot.getElementById('id-recovery');
+    this._settings = this.shadowRoot.getElementById('id-config');
+
+    this._onRecovery = this._onRecovery.bind(this);
+    this._onSettings = this._onSettings.bind(this);
+
   }
 
   connectedCallback() {
     this._form.addEventListener('submit', this._onSubmit);
     this._togglePass.addEventListener('click', this._onTogglePass);
     this._password.addEventListener('input', this._onPasswordInput);
+
+    this._recovery.addEventListener('click', this._onRecovery);
+    this._settings.addEventListener('click', this._onSettings);
   }
+
 
   disconnectedCallback() {
     this._form.removeEventListener('submit', this._onSubmit);
     this._togglePass.removeEventListener('click', this._onTogglePass);
     this._password.removeEventListener('input', this._onPasswordInput);
+
+    this._recovery.removeEventListener('click', this._onRecovery);
+    this._settings.removeEventListener('click', this._onSettings);
   }
+
 
   _onTogglePass() {
     const input = this._password;
@@ -208,10 +223,33 @@ class LoginCardComponent extends HTMLElement {
     );
   }
 
+
+  _onRecovery(e) {
+    e.preventDefault();
+
+    this.dispatchEvent(
+      new CustomEvent("recovery-event", {
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  _onSettings(e) {
+    e.preventDefault();
+
+    this.dispatchEvent(
+      new CustomEvent("settings-event", {
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+
   _onPasswordInput() {
     const password = this._password.value.trim();
 
-    // ✅ Corregido: antes tenías "password.length < 0"
     if (password.length === 0) {
       this._passwordError.textContent = 'Por favor, ingrese la contraseña.';
     } else {

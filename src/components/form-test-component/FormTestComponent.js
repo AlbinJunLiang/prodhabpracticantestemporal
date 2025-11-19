@@ -1,4 +1,7 @@
-class FormTestComponent extends HTMLElement {
+import { actualizarPregunta, crearPregunta } from "../../services/crudTestService.js";
+import { escapeHtml, mostrarMensajeModal } from "../../util/juegoFunctionUtility.js";
+
+export class FormTestComponent extends HTMLElement {
 
   static get observedAttributes() {
     return ["modo"];
@@ -350,7 +353,7 @@ class FormTestComponent extends HTMLElement {
 
       opcion.innerHTML = `
       <div class="form-field">
-        <input type="text" value="${op.texto || ""}" placeholder=" " />
+        <input type="text" value="${escapeHtml(op.texto) || ""}" placeholder=" " />
         <label>Texto de la opción</label>
       </div>
       <div class="form-field">
@@ -408,7 +411,7 @@ class FormTestComponent extends HTMLElement {
       const errores = this.validarPregunta({ enunciado, tipo, respuestas });
 
       if (errores.length > 0) {
-        utilModalJuegos.mostrarMensajeModal(
+        mostrarMensajeModal(
           "Error",
           errores.map(e => "• " + e).join("<br>")
         );
@@ -422,9 +425,9 @@ class FormTestComponent extends HTMLElement {
         let result = null;
 
         if (this.getAttribute("modo")?.toLowerCase() === "registrar") {
-          result = await CRUDTestService.crearPregunta({ ...preguntaData, respuestas }, this.serviceId);
+          result = await crearPregunta({ ...preguntaData, respuestas }, this.serviceId);
           if (result) {
-            utilModalJuegos.mostrarMensajeModal(
+            mostrarMensajeModal(
               "Éxito",
               "La pregunta ha sido creada correctamente."
             );
@@ -443,7 +446,7 @@ class FormTestComponent extends HTMLElement {
 
         } else {
           if (!this.currentEditId) {
-            utilModalJuegos.mostrarMensajeModal(
+            mostrarMensajeModal(
               "Error",
               "No se encontró la pregunta a editar."
             );
@@ -453,13 +456,13 @@ class FormTestComponent extends HTMLElement {
 
           const id = this.currentEditId;
 
-          const result = await CRUDTestService.actualizarPregunta(
+          const result = await actualizarPregunta(
             { ...preguntaData, idPregunta: id, respuestas },
             Number(this.currentEditId)
           );
 
           if (result.error) {
-            utilModalJuegos.mostrarMensajeModal(
+            mostrarMensajeModal(
               "Error",
               `No se pudo actualizar la pregunta: ${JSON.stringify(result.detalle)}`
             );
@@ -472,7 +475,7 @@ class FormTestComponent extends HTMLElement {
               this._testViewer.actualizarPregunta(preguntaConID);
             }
 
-            utilModalJuegos.mostrarMensajeModal(
+            mostrarMensajeModal(
               "Éxito",
               "La pregunta ha sido actualizada correctamente."
             );
@@ -487,7 +490,7 @@ class FormTestComponent extends HTMLElement {
 
       } catch (error) {
         console.error(error);
-        utilModalJuegos.mostrarMensajeModal(
+        mostrarMensajeModal(
           "Error",
           "Ocurrió un error al guardar la pregunta."
         );
@@ -520,47 +523,47 @@ class FormTestComponent extends HTMLElement {
     this.shadowRoot.querySelector("#lista-opciones").innerHTML = "";
   }
 
-validarPregunta({ enunciado, tipo, respuestas }) {
+  validarPregunta({ enunciado, tipo, respuestas }) {
 
-  // Enunciado
-  if (!enunciado || enunciado.trim() === "") {
-    return ["El enunciado no puede estar vacío."]; 
-  }
-  if (enunciado.length > 500) {
-    return ["El enunciado no puede superar los 500 caracteres."]; 
-  }
-
-  // Tipo
-  if (!tipo) {
-    return ["Debes seleccionar un tipo de pregunta."];
-  }
-
-  // Respuestas
-  if (!Array.isArray(respuestas) || respuestas.length === 0) {
-    return ["Debes agregar por lo menos una respuesta."];
-  }
-
-  for (let i = 0; i < respuestas.length; i++) {
-    const r = respuestas[i];
-
-    if (!r.texto || r.texto.trim() === "") {
-      return [`La respuesta ${i + 1} no puede estar vacía.`];
+    // Enunciado
+    if (!enunciado || enunciado.trim() === "") {
+      return ["El enunciado no puede estar vacío."];
     }
-    if (r.texto.length > 300) {
-      return [`La respuesta ${i + 1} supera los 300 caracteres.`];
+    if (enunciado.length > 500) {
+      return ["El enunciado no puede superar los 500 caracteres."];
     }
-    if (r.retroalimentacion && r.retroalimentacion.length > 300) {
-      return [`La retroalimentación de la respuesta ${i + 1} supera los 300 caracteres.`];
+
+    // Tipo
+    if (!tipo) {
+      return ["Debes seleccionar un tipo de pregunta."];
     }
-  }
 
-  const tieneCorrecta = respuestas.some(r => r.esCorrecta);
-  if (!tieneCorrecta) {
-    return ["Debes marcar al menos una respuesta correcta."];
-  }
+    // Respuestas
+    if (!Array.isArray(respuestas) || respuestas.length === 0) {
+      return ["Debes ingresar o agregar por lo menos una respuesta."];
+    }
 
-  return []; // OK
-}
+    for (let i = 0; i < respuestas.length; i++) {
+      const r = respuestas[i];
+
+      if (!r.texto || r.texto.trim() === "") {
+        return [`La respuesta ${i + 1} no puede estar vacía.`];
+      }
+      if (r.texto.length > 300) {
+        return [`La respuesta ${i + 1} supera los 300 caracteres.`];
+      }
+      if (r.retroalimentacion && r.retroalimentacion.length > 300) {
+        return [`La retroalimentación de la respuesta ${i + 1} supera los 300 caracteres.`];
+      }
+    }
+
+    const tieneCorrecta = respuestas.some(r => r.esCorrecta);
+    if (!tieneCorrecta) {
+      return ["Debes marcar al menos una respuesta correcta."];
+    }
+
+    return []; // OK
+  }
 
 
 }

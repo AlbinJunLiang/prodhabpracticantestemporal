@@ -1,4 +1,7 @@
-class OrdenaLetrasComponent extends HTMLElement {
+import { registrarJuego } from "../../services/resultadoJuegoService.js";
+import { escapeAttr, escapeHtml, mezclar } from "../../util/juegoFunctionUtility.js";
+
+export class OrdenaLetrasComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -58,7 +61,7 @@ class OrdenaLetrasComponent extends HTMLElement {
       palabras = ["ejemplo"];
     }
 
-    this.palabras = this.mezclarArray([...palabras]);
+    this.palabras = mezclar([...palabras]);
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -72,7 +75,7 @@ class OrdenaLetrasComponent extends HTMLElement {
         min-height: 80vh;
         padding: 20px;
         box-sizing: border-box;
-        background: transparent; /* Ensure transparent background */
+        background: transparent; 
       }
 
       .contenedor-juego {
@@ -81,16 +84,16 @@ class OrdenaLetrasComponent extends HTMLElement {
         padding-top: 30px;
         background: white;
         border-radius: 20px;
-        width: 600px; /* 🔹 Fixed width for all screen sizes */
-        box-sizing: border-box; /* 🔹 Padding included in width */
+        width: 600px;
+        box-sizing: border-box;
         text-align: center;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         display: flex;
         flex-direction: column;
         align-items: center;
         margin: auto;
-        position: relative; /* 🔹 For canvas positioning */
-        outline: none; /* para que el focus no muestre outline por defecto */
+        position: relative;
+        outline: none; 
       }
 
       h2 {
@@ -104,7 +107,7 @@ class OrdenaLetrasComponent extends HTMLElement {
         line-height: 1.6;
         color: #444;
         overflow-wrap: break-word;
-        max-width: 100%; /* 🔹 Ensure text doesn't overflow */
+        max-width: 100%;
       }
 
       .palabra-mezclada {
@@ -115,7 +118,7 @@ class OrdenaLetrasComponent extends HTMLElement {
         color: #2d2d6b;
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         word-break: break-word;
-        max-width: 100%; /* 🔹 Prevent overflow */
+        max-width: 100%; 
       }
 
       .contenedor-letras {
@@ -125,7 +128,7 @@ class OrdenaLetrasComponent extends HTMLElement {
         justify-content: center;
         margin-bottom: 20px;
         min-height: 50px;
-        max-width: 100%; /* 🔹 Constrain letter buttons */
+        max-width: 100%; 
       }
 
       .boton-letra {
@@ -163,7 +166,7 @@ class OrdenaLetrasComponent extends HTMLElement {
         color: #2d2d6b;
         font-weight: bold;
         word-break: break-word;
-        max-width: 100%; /* 🔹 Prevent overflow */
+        max-width: 100%; 
       }
 
       .contenedor-acciones {
@@ -216,7 +219,7 @@ class OrdenaLetrasComponent extends HTMLElement {
         min-height: 1.4em;
         font-size: 1.1rem;
         overflow-wrap: break-word;
-        max-width: 100%; /* 🔹 Prevent overflow */
+        max-width: 100%; 
       }
 
 
@@ -364,7 +367,7 @@ class OrdenaLetrasComponent extends HTMLElement {
       <div class="contenedor-juego" tabindex="0">
         <canvas id="confetti-canvas" class="oculto"></canvas>
         <div id="introduccion">
-          <h2 id="tema">${this.getAttribute("tema") || "Ordena las palabras"}</h2>
+          <h2 id="tema">${escapeAttr(this.getAttribute("tema")) || "Ordena las palabras"}</h2>
           <p id="historia"></p>
           <p><em>Recuerda bien las palabras en negrita...</em></p>
           <div class="contenedor-consentimiento">
@@ -442,19 +445,13 @@ class OrdenaLetrasComponent extends HTMLElement {
     this._disableKeyboard();
   }
 
-  mezclarArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
+
 
   resaltarPalabras(texto, palabras) {
     const normalizar = (str) =>
       str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-    let resultado = texto;
+    let resultado = escapeHtml(texto);
 
     palabras.forEach((palabra) => {
       const palabraNorm = normalizar(palabra);
@@ -584,7 +581,7 @@ class OrdenaLetrasComponent extends HTMLElement {
         this.juego.classList.add("oculto");
         this.final.classList.remove("oculto");
         this.startConfetti();
-        await resultadoJuegoService.registrarJuego(Number(this.getAttribute("id-ordenar")) || null);
+        await registrarJuego(Number(this.getAttribute("id-ordenar")) || null);
       }
       return true;
     } else {
@@ -645,8 +642,8 @@ class OrdenaLetrasComponent extends HTMLElement {
 
       this.palabras =
         palabrasOriginales.length > 0
-          ? this.mezclarArray([...palabrasOriginales])
-          : this.mezclarArray(["ejemplo"]);
+          ? mezclar([...palabrasOriginales])
+          : mezclar(["ejemplo"]);
 
       if (this.introduccion) this.introduccion.classList.remove("oculto");
       if (this.juego) this.juego.classList.add("oculto");

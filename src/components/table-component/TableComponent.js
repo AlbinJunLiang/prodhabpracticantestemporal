@@ -1,5 +1,6 @@
+import { escapeAttr, escapeHtml } from "../../util/juegoFunctionUtility.js";
 
-class TableComponent extends HTMLElement {
+export class TableComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -341,10 +342,10 @@ td input.inline-input {
               const val = row[col] ?? "";
               return isEditing
                 ? `<td data-label="${this._pretty(col)}">
-  <input data-col="${col}" class="inline-input" value="${this._escapeAttr(val)}">
+  <input data-col="${col}" class="inline-input" value="${escapeAttr(val)}">
 </td>
 `
-                : `<td data-label="${this._pretty(col)}">${val === "" ? "" : this._escapeHtml(val)
+                : `<td data-label="${this._pretty(col)}">${val === "" ? "" : escapeHtml(val)
                 }</td>`;
             })
             .join("");
@@ -422,24 +423,24 @@ td input.inline-input {
     this._changePage(n);
   }
 
-_addRow() {
+  _addRow() {
     if (this.editingRowId !== null) return;
 
-    
-  if (this.columns.length === 0) {
-    this.columns = Object.keys(this._columnNames || {});
-  }
 
-  const newRow = {};
-  this.columns.forEach((c) => (newRow[c] = ""));
-  newRow._id = this._nextId++;
-  newRow._isNew = true;
-  this.data.unshift(newRow);
-  this.editingRowId = newRow._id;
-  this.page = 1;
-  this._deriveColumns();
-  this._render();
-}
+    if (this.columns.length === 0) {
+      this.columns = Object.keys(this._columnNames || {});
+    }
+
+    const newRow = {};
+    this.columns.forEach((c) => (newRow[c] = ""));
+    newRow._id = this._nextId++;
+    newRow._isNew = true;
+    this.data.unshift(newRow);
+    this.editingRowId = newRow._id;
+    this.page = 1;
+    this._deriveColumns();
+    this._render();
+  }
 
 
   _startEdit(id) {
@@ -463,7 +464,7 @@ _addRow() {
       cancelable: true,
     });
 
-    if (!this.dispatchEvent(event)) return; 
+    if (!this.dispatchEvent(event)) return;
 
     Object.assign(row, newData);
     delete row._isNew;
@@ -510,19 +511,6 @@ _addRow() {
     return String(key)
       .replace(/_/g, " ")
       .replace(/\b\w/g, (l) => l.toUpperCase());
-  }
-
-  _escapeHtml(s) {
-    return s == null
-      ? ""
-      : String(s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-  }
-  _escapeAttr(s) {
-    return s == null ? "" : String(s).replace(/"/g, "&quot;");
   }
 }
 

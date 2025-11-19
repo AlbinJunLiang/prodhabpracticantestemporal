@@ -1,4 +1,7 @@
-class TestViewerComponent extends HTMLElement {
+import { obtenerPreguntasTestJuego, eliminarPregunta, cambiarEstadoPregunta } from "../../services/crudTestService.js";
+import { mostrarMensajeModal } from "../../util/juegoFunctionUtility.js";
+
+export class TestViewerComponent extends HTMLElement {
 
 
   get serviceId() {
@@ -182,13 +185,13 @@ button {
   async connectedCallback() {
 
     try {
-      const datos = await CRUDTestService.obtenerPreguntasTestJuego(this.serviceId);
+      const datos = await obtenerPreguntasTestJuego(this.serviceId);
       this.preguntas = Array.isArray(datos) ? datos : [];
     } catch (err) {
       console.error("Error al obtener preguntas:", err);
       this.preguntas = [];
     }
-
+    
     this.filteredPreguntas = [...this.preguntas];
     this.renderPreguntas();
 
@@ -220,7 +223,7 @@ button {
   }
 
   async onUserLogin() {
-    this.preguntas = await CRUDTestService.obtenerPreguntasTestJuego(this.serviceId);
+    this.preguntas = await obtenerPreguntasTestJuego(this.serviceId);
     this.filteredPreguntas = [...this.preguntas];
     this.currentPage = 1;
     this.renderPreguntas();
@@ -289,11 +292,11 @@ button {
 
 
       div.querySelector(".btn-delete").addEventListener("click", async () => {
-        utilModalJuegos.mostrarMensajeModal(
+        mostrarMensajeModal(
           "Confirmación",
           "¿Eliminar esta pregunta?",
           () => {
-            CRUDTestService.eliminarPregunta(parseInt(p.idPregunta));
+            eliminarPregunta(parseInt(p.idPregunta));
             this.eliminarPregunta(p.idPregunta);
           }
         );
@@ -303,7 +306,7 @@ button {
 
       div.querySelector(".btn-toggle").addEventListener("click", async () => {
         const nuevoEstado = !p.activa;
-        const resp = await CRUDTestService.cambiarEstadoPregunta(p.idPregunta, nuevoEstado);
+        const resp = await cambiarEstadoPregunta(p.idPregunta, nuevoEstado);
 
         if (!resp) {
           alert("No se pudo cambiar el estado. Intenta de nuevo.");

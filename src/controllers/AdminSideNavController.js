@@ -1,58 +1,48 @@
-(() => {
+// archivo: modules/admin-sidenav.js
+// ES Module
 
-    const sidenav = document.querySelector("#admin-side-nav-menu");
+import { crearTablaDinamica } from "./AdminJuegosController.js";
+import { logout as authLogout } from "../services/authService.js"; // ajusta según tu path real
 
-    sidenav.addEventListener("irATest", (e) => {
-        window.prodhab_juegos.crearTablaDinamica(
-            1,
-            "id-admin-juegos-sidenav-option2",
-            "Administrar Test"
-        );
-    });
+export function inicializarSidenav() {
+  const sidenav = document.querySelector("#admin-side-nav-menu");
+  if (!sidenav) return;
 
-    sidenav.addEventListener("irAOrdenar", (e) => {
-        window.prodhab_juegos.crearTablaDinamica(
-            2,
-            "id-admin-juegos-sidenav-option3",
-            "Ordenar palabras"
-        );
-    });
+  sidenav.addEventListener("irATest", () => {
+    crearTablaDinamica(1, "id-admin-juegos-sidenav-option2", "Administrar Test");
+  });
 
-    sidenav.addEventListener("irACompletar", (e) => {
-        window.prodhab_juegos.crearTablaDinamica(
-            3,
-            "id-admin-juegos-sidenav-option4",
-            "Completar texto"
-        );
-    });
+  sidenav.addEventListener("irAOrdenar", () => {
+    crearTablaDinamica(2, "id-admin-juegos-sidenav-option3", "Ordenar palabras");
+  });
 
-    sidenav.addEventListener("irASopa", (e) => {
-        window.prodhab_juegos.crearTablaDinamica(
-            4,
-            "id-admin-juegos-sidenav-option5",
-            "Sopa de letras"
-        );
-    });
+  sidenav.addEventListener("irACompletar", () => {
+    crearTablaDinamica(3, "id-admin-juegos-sidenav-option4", "Completar texto");
+  });
 
-    sidenav.addEventListener("logout", async () => {
-        sessionStorage.removeItem("sesion_admin_juegos_prodhab");
+  sidenav.addEventListener("irASopa", () => {
+    crearTablaDinamica(4, "id-admin-juegos-sidenav-option5", "Sopa de letras");
+  });
 
-        try {
-            const exito = await AuthService.logout();
-            if (!exito) console.warn("No se pudo cerrar sesión en el servidor");
-        } catch (err) {
-            console.error("Error en logout:", err);
-        }
-        const fondoLogin = document.querySelector(".fondo-login");
-        const sideNav = document.querySelector("side-nav-component");
+  sidenav.addEventListener("logout", async () => {
+    sessionStorage.removeItem("sesion_admin_juegos_prodhab");
 
-        if (fondoLogin && sideNav) {
-            fondoLogin.style.display = "block";
-            sideNav.style.display = "none";
-        }
-        sidenav.navigate("#/inicio");
-    });
+    try {
+      const exito = await authLogout();
+      if (!exito) console.warn("No se pudo cerrar sesión en el servidor");
+    } catch (err) {
+      console.error("Error en logout:", err);
+    }
+
+    const fondoLogin = document.querySelector(".fondo-login");
+    const sideNav = document.querySelector("side-nav-component");
+
+    if (fondoLogin) fondoLogin.style.display = "block";
+    if (sideNav) sideNav.style.display = "none";
 
     sidenav.navigate("#/inicio");
+  });
 
-})();
+  // Inicializar vista predeterminada
+  sidenav.navigate("#/inicio");
+}

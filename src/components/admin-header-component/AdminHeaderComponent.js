@@ -1,4 +1,4 @@
-class AdminHeaderComponent extends HTMLElement {
+export class AdminHeaderComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });

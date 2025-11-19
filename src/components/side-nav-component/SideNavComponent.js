@@ -1,4 +1,4 @@
-class SidenavComponent extends HTMLElement {
+export class SidenavComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });

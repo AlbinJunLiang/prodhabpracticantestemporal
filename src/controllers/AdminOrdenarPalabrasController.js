@@ -1,181 +1,130 @@
-/**
- * ==============================
- * Variables / objetos globales externos
- * ==============================
- */
 
-/**
- * @namespace window.prodhab_juegos
- * @description Objeto global que contiene información del juego seleccionado
- */
+import { actualizarJuego } from "../services/juegosService.js";
+import { eliminarPalabra, cargarPalabras, crearPalabras } from "../services/juegoPalabrasService.js";
+import { validarSubItems, mostrarMensajeModal } from "../util/juegoFunctionUtility.js";
+import { getJuegoSeleccionado } from "../controllers/AdminJuegosController.js";
+export function inicializarOrdenarPalabras() {
+document.addEventListener("admin-ordenar-palabras", (e) => {
+    const gestor = e.target;
 
-/**
- * @property window.prodhab_juegos.juegoSeleccionado
- * @type {number}
- * @description ID del juego actualmente seleccionado
- */
+    gestor.addEventListener("item-saved", async (e) => {
+        const { titulo, isNew } = e.detail;
 
-/**
- * ==============================
- * Servicios / funciones externas
- * ==============================
- */
+        if (isNew) return;
+        try {
+            await actualizarJuego(
+                Number(getJuegoSeleccionado()),
+                { Descripcion: titulo }
+            );
 
-/**
- * @function juegoService.actualizarJuego
- * @async
- * @description Actualiza un juego en el backend
- */
+            mostrarMensajeModal("Éxito", `✓ Ronda "${titulo}" actualizada correctamente`);
+        } catch (err) {
+            console.error(err);
+            mostrarMensajeModal("Error", `✗ Error al actualizar: ${err.message || err}`);
+        }
+    });
 
-/**
- * @function juegoPalabrasService.crearPalabras
- * @async
- * @description Crea nuevas palabras para un juego en el backend
- */
+    gestor.addEventListener("subitems-save-requested", async (e) => {
+        const { itemId, subItems } = e.detail;
 
-/**
- * @function juegoPalabrasService.eliminarPalabra
- * @async
- * @description Elimina una palabra de un juego en el backend
- */
+        const valido = validarSubItems(gestor, itemId, subItems, 50);
+        if (!valido) return;
 
-/**
- * @function juegoPalabrasService.cargarPalabras
- * @async
- * @description Obtiene todas las palabras de un juego desde el backend
- */
+        try {
+            const palabras = subItems.map((s) => s.texto);
+            if (!palabras.length) return;
 
-/**
- * @function utilModalJuegos.mostrarMensajeModal
- * @description Muestra un modal de confirmación o mensaje al usuario
- */
+            const resp = await crearPalabras(
+                Number(getJuegoSeleccionado()),
+                palabras
+            );
 
-(() => {
-
-
-    document.addEventListener("admin-ordenar-palabras", (e) => {
-        const gestor = e.target;
-
-        gestor.addEventListener("item-saved", async (e) => {
-            const { titulo, isNew } = e.detail;
-         
-
-            if (isNew) return;
-            try {
-                await juegoService.actualizarJuego(Number(window.prodhab_juegos.juegoSeleccionado), { Descripcion: titulo });
-                utilModalJuegos.mostrarMensajeModal("Éxito", `✓ Ronda "${titulo}" actualizada correctamente`);
-            } catch (err) {
-                console.error(err);
-                utilModalJuegos.mostrarMensajeModal("Error", `✗ Error al actualizar: ${err.message || err}`);
-
-            }
-        });
-
-
-
-        gestor.addEventListener("subitems-save-requested", async (e) => {
-            const { itemId, subItems } = e.detail;
-
-               
-            const valido = utilValidacionesJuegos.validarSubItems(gestor, itemId, subItems, 50);
-            if (!valido) return;
-            try {
-                const palabras = subItems.map((s) => s.texto);
-                if (!palabras.length) return;
-
-                const resp = await juegoPalabrasService.crearPalabras(
-                    Number(window.prodhab_juegos.juegoSeleccionado),
-                    palabras
-                );
-
-                const item = gestor._items.find(
-                    (i) => String(i.id) === String(itemId)
-                );
-                if (!item) {
-                    utilModalJuegos.mostrarMensajeModal("Error", `Juego no encontrado`);
-                    return;
-                }
-
-                if (
-                    resp &&
-                    Array.isArray(resp.palabras) &&
-                    resp.palabras.length > 0
-                ) {
-                    resp.palabras.forEach((p) => {
-                        const textoPalabra = p.palabra;
-                        const idReal = String(p.idPalabraJuego);
-
-                        const nuevoSubitem = {
-                            id: idReal,
-                            texto: textoPalabra,
-                        };
-
-                        item.subItems.push(nuevoSubitem);
-                    });
-
-                }
-
-                const state = gestor._itemStates.get(itemId);
-                if (state) {
-                    state.pendingSubItems = [];
-                }
-
-                gestor._render();
-                utilModalJuegos.mostrarMensajeModal("Éxito", `✓ ${palabras.length} palabras guardadas correctamente`);
-
-            } catch (err) {
-                utilModalJuegos.mostrarMensajeModal("Error", `✗ Error: ${err.message || err}`);
-
-            }
-        });
-
-        gestor.shadowRoot.addEventListener("click", async (e) => {
-            if (!e.target.matches(".sublist .chip button")) return;
-
-            const chipEl = e.target.closest(".chip");
-            const palabraId = chipEl.dataset.id;
-            if (!palabraId) return;
-
-            let item = gestor._items.find(i => i.subItems.some(s => s.id === palabraId));
-            let state = gestor._itemStates.get(item?.id) || { pendingSubItems: [] };
-
-            if (state.pendingSubItems.some(s => s.id === palabraId)) {
-                state.pendingSubItems = state.pendingSubItems.filter(s => s.id !== palabraId);
-                gestor._render();
+            const item = gestor._items.find((i) => String(i.id) === String(itemId));
+            if (!item) {
+                mostrarMensajeModal("Error", `Juego no encontrado`);
                 return;
             }
-            if (!isNaN(Number(palabraId))) {
 
-                utilModalJuegos.mostrarMensajeModal(
-                    "Confirmar eliminación",
-                    "¿Deseas eliminar esta palabra?",
-                    async () => {
-                        try {
-                            await juegoPalabrasService.eliminarPalabra(palabraId);
-                            item.subItems = item.subItems.filter(s => s.id !== palabraId);
-                            gestor._render();
+            if (resp && Array.isArray(resp.palabras) && resp.palabras.length > 0) {
+                resp.palabras.forEach((p) => {
+                    const textoPalabra = p.palabra;
+                    const idReal = String(p.idPalabraJuego);
 
-                        } catch (err) {
-                            console.error(err);
-                            utilModalJuegos.mostrarMensajeModal(
-                                "Error",
-                                `✗ Error al eliminar palabra: ${err.message}`
-                            );
-                        }
-                    }
-                );
+                    const nuevoSubitem = {
+                        id: idReal,
+                        texto: textoPalabra,
+                    };
+
+                    item.subItems.push(nuevoSubitem);
+                });
             }
-        });
 
-
-        (async function cargarDatos() {
-            try {
-                const items = await juegoPalabrasService.cargarPalabras(Number(window.prodhab_juegos.juegoSeleccionado));
-                gestor.loadItems(items);
-                gestor.setAttribute("title", items[0]?.nombre || "Gestor de Palabras del Juego");
-            } catch (err) {
-                console.error("Error al cargar datos:", err);
+            const state = gestor._itemStates.get(itemId);
+            if (state) {
+                state.pendingSubItems = [];
             }
-        })();
+
+            gestor._render();
+            mostrarMensajeModal("Éxito", `✓ ${palabras.length} palabras guardadas correctamente`);
+
+        } catch (err) {
+            mostrarMensajeModal("Error", `✗ Error: ${err.message || err}`);
+        }
     });
-})();
+
+    gestor.shadowRoot.addEventListener("click", async (e) => {
+        if (!e.target.matches(".sublist .chip button")) return;
+
+        const chipEl = e.target.closest(".chip");
+        const palabraId = chipEl.dataset.id;
+        if (!palabraId) return;
+
+        let item = gestor._items.find(i => i.subItems.some(s => s.id === palabraId));
+        let state = gestor._itemStates.get(item?.id) || { pendingSubItems: [] };
+
+        if (state.pendingSubItems.some(s => s.id === palabraId)) {
+            state.pendingSubItems = state.pendingSubItems.filter(s => s.id !== palabraId);
+            gestor._render();
+            return;
+        }
+
+        if (!isNaN(Number(palabraId))) {
+            mostrarMensajeModal(
+                "Confirmar eliminación",
+                "¿Deseas eliminar esta palabra?",
+                async () => {
+                    try {
+                        await eliminarPalabra(palabraId);
+
+                        item.subItems = item.subItems.filter(s => s.id !== palabraId);
+                        gestor._render();
+
+                    } catch (err) {
+                        console.error(err);
+                        mostrarMensajeModal(
+                            "Error",
+                            `✗ Error al eliminar palabra: ${err.message}`
+                        );
+                    }
+                }
+            );
+        }
+    });
+
+    // Cargar datos iniciales
+    (async function cargarDatos() {
+        try {
+            const items = await cargarPalabras(
+                Number(getJuegoSeleccionado())
+            );
+
+            gestor.loadItems(items);
+            gestor.setAttribute("title", items[0]?.nombre || "Gestor de Palabras del Juego");
+
+        } catch (err) {
+            console.error("Error al cargar datos:", err);
+        }
+    })();
+
+});
+}

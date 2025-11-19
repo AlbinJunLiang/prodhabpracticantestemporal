@@ -1,4 +1,8 @@
-class SopaLetrasComponent extends HTMLElement {
+import { registrarJuego } from "../../services/resultadoJuegoService.js";
+import { obtenerDatosSopa } from "../../services/sopaLetrasService.js";
+import { escapeHtml } from "../../util/juegoFunctionUtility.js";
+
+export class SopaLetrasComponent extends HTMLElement {
 
 
     constructor() {
@@ -36,16 +40,14 @@ class SopaLetrasComponent extends HTMLElement {
 
 
     async init() {
-        await this.parseAttributes(); // Espera que se carguen las palabras
-
-        // Si no hay palabras, no renderiza ni inicia el juego
+        await this.parseAttributes();
         if (!this.words || this.words.length === 0) {
             this.shadowRoot.innerHTML = `<p>No hay palabras disponibles para generar la sopa de letras.</p>`;
             return;
         }
 
-        this.render();     // Primero renderiza el DOM
-        this.nuevoJuego(); // Luego genera la sopa
+        this.render();   
+        this.nuevoJuego(); 
 
         const modal1 = this.shadowRoot.getElementById("modal1");
         if (modal1?.open) modal1.open();
@@ -63,30 +65,27 @@ class SopaLetrasComponent extends HTMLElement {
             this.size = s >= 8 && s <= 25 ? s : 14;
         }
 
-        // Palabras
-        // Palabras
         if (wordsAttr) {
             this.words = wordsAttr
                 .split(",")
                 .map(w => w.trim().toUpperCase().replace(/\s+/g, "")) // quitar espacios
                 .filter(w => w.length > 0 && w.length <= 14)          // solo palabras de 1 a 14 letras
-                .slice(0, 15);                                        // máximo 15 palabras
+                .slice(0, 15);
         } else {
             // Obtener palabras del servicio
-            const res = await sopaLetrasService.obtenerDatosSopa(Number(this.getAttribute('id-sopa')) || null);
+            const res = await obtenerDatosSopa(Number(this.getAttribute('id-sopa')) || null);
             this.idSopa = res.idJuego;
             if (res.idJuego == null) {
-                this.shadowRoot.innerHTML = `<p>Juego no disponible.</p>`;
+                this.shadowRoot.textContent = `<p>Juego no disponible.</p>`;
                 return;
             }
             this.words = res.palabras
-                .map(w => w.toUpperCase().replace(/\s+/g, ""))        // quitar espacios
-                .filter(w => w.length > 0 && w.length <= 14);          // omitir las que pasen de 14 letras
+                .map(w => w.toUpperCase().replace(/\s+/g, ""))
+                .filter(w => w.length > 0 && w.length <= 14);
             this.descripcion = res.descripcion;
             this.detalle = res.detalle;
             this.title = res.nombre || titleAttr;
             this.link = this.detalle;
-            console.log(res)
 
         }
     }
@@ -280,10 +279,10 @@ class SopaLetrasComponent extends HTMLElement {
   height: auto;
   display: block;
   margin: 0 auto 50px;
-  user-select: none;       /* Evita seleccionar con el cursor */
-  -webkit-user-drag: none; /* Evita que se pueda arrastrar en Chrome/Safari */
-  -moz-user-select: none;  /* Firefox */
-  -ms-user-select: none;   /* IE/Edge */
+  user-select: none;     
+  -webkit-user-drag: none;
+  -moz-user-select: none;  
+  -ms-user-select: none;   
 }
 
 
@@ -306,12 +305,12 @@ class SopaLetrasComponent extends HTMLElement {
 
   @media (max-width: 375px) { 
     .cell { min-width: 14px; min-height: 14px; font-size: 9px; }
-    #btnRestart { width: 100px; bottom: 5px; right: 5px; }
+    #btnRestart { width: 120px; bottom: 5px; right: 5px; }
   }
 </style>
 
 <div class="app">
-  <h2>${this.title}</h2>
+  <h2>${escapeHtml(this.title)}</h2>
   <div class="layout">
     <section>
       <div id="board" class="board"></div>
@@ -337,15 +336,15 @@ class SopaLetrasComponent extends HTMLElement {
 
   <modal-sopa 
     id="modal1"
-    title="${modal1Title}"
+    title="${escapeHtml(modal1Title)}"
     video="${modal1Video}">
   </modal-sopa>
 
   <modal-sopa 
     id="modal2"
-    title="${modal2Title}" 
+    title="${escapeHtml(modal2Title)}" 
     video="${modal2Video}"
-    link="${modal2Link}"
+    link="${escapeHtml(modal2Link)}"
     no-animation>
   </modal-sopa>
 </div>
@@ -355,12 +354,14 @@ class SopaLetrasComponent extends HTMLElement {
     }
 
     nuevoJuego() {
+
         if (this.timerInterval) clearInterval(this.timerInterval);
         this.timer = 0;
 
         this.grid = Array.from({ length: this.size }, () =>
             Array(this.size).fill("")
         );
+
         this.placed.length = 0;
         this.path.length = 0;
         this.firstClick = null;
@@ -370,7 +371,6 @@ class SopaLetrasComponent extends HTMLElement {
             .filter((w) => w.length <= this.size);
 
         sorted.forEach((w) => this.colocarPalabra(w));
-
         for (let y = 0; y < this.size; y++) {
             for (let x = 0; x < this.size; x++) {
                 if (!this.grid[y][x]) this.grid[y][x] = this.ABC[Math.floor(Math.random() * this.ABC.length)];
@@ -512,18 +512,26 @@ class SopaLetrasComponent extends HTMLElement {
         }
     }
 
-    renderWords() {
-        const cont = this.shadowRoot.getElementById("words");
-        if (!cont) return;
-        cont.innerHTML = "";
-        this.words.forEach((w) => {
-            const div = document.createElement("div");
-            div.className = "word";
-            div.id = `w-${w}`;
-            div.innerHTML = `<span>${w}</span><small id="s-${w}">—</small>`;
-            cont.appendChild(div);
-        });
-    }
+ renderWords() {
+    const cont = this.shadowRoot.getElementById("words");
+    if (!cont) return;
+    cont.innerHTML = "";
+    this.words.forEach((w) => {
+        const div = document.createElement("div");
+        div.className = "word";
+        div.id = `w-${w}`;
+
+        const span = document.createElement("span");
+        span.textContent = w; // Escapado seguro
+        const small = document.createElement("small");
+        small.id = `s-${w}`;
+        small.textContent = "—";
+
+        div.appendChild(span);
+        div.appendChild(small);
+        cont.appendChild(div);
+    });
+}
 
     startSel(e) {
         this.selecting = true;
@@ -692,9 +700,9 @@ class SopaLetrasComponent extends HTMLElement {
 
                 const msg = this.shadowRoot.getElementById("msg");
                 if (msg) msg.textContent = `¡Felicidades! Lo lograste en ${timeText}`;
-           
-           
-                await resultadoJuegoService.registrarJuego(Number(this.getAttribute("id-sopa")) || this.idSopa || null);
+
+
+                await registrarJuego(Number(this.getAttribute("id-sopa")) || this.idSopa || null);
 
                 if (this.timerInterval) clearInterval(this.timerInterval);
                 const modal = this.shadowRoot.getElementById("modal2");

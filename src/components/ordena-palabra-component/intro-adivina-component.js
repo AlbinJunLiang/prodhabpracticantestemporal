@@ -1,4 +1,6 @@
-class IntroAdivinaComponent extends HTMLElement {
+import { escapeHtml } from "../../util/juegoFunctionUtility.js";
+
+export  class IntroAdivinaComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -113,7 +115,7 @@ class IntroAdivinaComponent extends HTMLElement {
 
       <main class="card" role="main">
         <h2 style="margin: 0; font-weight: 600; margin-top: 30px;">
-${this.getAttribute("intro-title") || "Ordena las palabras"}
+${escapeHtml(this.getAttribute("intro-title")) || "Ordena las palabras"}
         </h2>
         <p id="streaming-text"></p>
         <div class="video-wrap" id="video-wrap"></div>
@@ -161,20 +163,36 @@ ${this.getAttribute("intro-title") || "Ordena las palabras"}
     }
   }
 
-  escribir() {
-    // Obtener texto desde atributo externo, si no existe usar uno por defecto
-    const texto = this.getAttribute('data-texto') || "Recuerda leer bien el texto antes de iniciar el juego.";
-    const contenedor = this.shadowRoot.getElementById("streaming-text");
-    const btnJugar = this.shadowRoot.getElementById("btn-jugar");
 
-    if (this.index < texto.length) {
+  escribir() {
+  const texto = this.getAttribute('data-texto') || "Recuerda leer bien el texto antes de iniciar el juego.";
+  const contenedor = this.shadowRoot.getElementById("streaming-text");
+  const btnJugar = this.shadowRoot.getElementById("btn-jugar");
+
+  const velocidad = 30; // ms por carácter
+  let lastTime = 0;
+
+  const step = (timestamp) => {
+    if (!lastTime) lastTime = timestamp;
+    const delta = timestamp - lastTime;
+
+    if (delta >= velocidad) {
       contenedor.textContent += texto.charAt(this.index);
       this.index++;
-      setTimeout(() => this.escribir(), 50);
+      lastTime = timestamp;
+    }
+
+    if (this.index < texto.length) {
+      requestAnimationFrame(step);
     } else {
       btnJugar.classList.add("visible");
     }
-  }
+  };
+
+  requestAnimationFrame(step);
+}
+
+
 }
 
 customElements.define('intro-adivina-component', IntroAdivinaComponent);

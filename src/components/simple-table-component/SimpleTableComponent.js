@@ -1,4 +1,6 @@
-class SimpleTableComponent extends HTMLElement {
+import { escapeHtml } from "../../util/juegoFunctionUtility.js";
+
+export class SimpleTableComponent extends HTMLElement {
 
   get serviceId() {
     const id = this.getAttribute("service-id") || 1;
@@ -66,7 +68,7 @@ class SimpleTableComponent extends HTMLElement {
   flex-wrap: wrap;
 }
 button {
-  padding: 10px 16px;
+  padding: 6px 5px;
   border: none;
   border-radius: 6px;
   background: #1e355e;
@@ -84,13 +86,20 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-input {
+
+
+textarea {
   width: 100%;
   padding: 6px;
   border-radius: 4px;
   border: 1px solid #ccc;
   font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical; /* permite al usuario cambiar altura */
+  min-height: 40px; /* altura mínima */
+  box-sizing: border-box;
 }
+
 .table-container {
   overflow-x: auto;
   border-radius: 6px;
@@ -110,13 +119,18 @@ td {
 }
 
 td {
-  word-wrap: break-word;
+  word-break: break-word; 
+  overflow-wrap: break-word;
   white-space: normal;
+  hyphens: auto;
 }
+
+
+
 .button-group {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; 
+  gap: 10px;     
   align-items: center;
 }
 
@@ -169,7 +183,6 @@ td {
     width: 100%; 
   }
 }
-
       </style>
     `;
 
@@ -179,7 +192,7 @@ td {
     const pageRows = this.data.slice(start, start + this.pageSize);
 
     const headersHtml = this.columns
-      .map((c) => `<th>${this._escapeHtml(c.label || c)}</th>`)
+      .map((c) => `<th>${escapeHtml(c.label || c)}</th>`)
       .join("");
 
     const rowsHtml = pageRows.length
@@ -188,9 +201,9 @@ td {
           const cells = this.columns.map((col) => {
             const key = col.key || col; // si col es objeto, usa su key
             if (this.editingId === item._id && this.editableColumns.includes(key)) {
-              return `<td><input type="text" value="${this._escapeHtml(item[key] ?? "")}" data-field="${key}" /></td>`;
+              return `<td><textarea rows="3" style="width:100%; resize:vertical;" data-field="${key}">${escapeHtml(item[key] ?? "")}</textarea></td>`;
             }
-            return `<td>${this._escapeHtml(item[key] ?? "")}</td>`;
+            return `<td>${escapeHtml(item[key] ?? "")}</td>`;
           }).join("");
 
 
@@ -200,7 +213,7 @@ td {
           ];
 
           const externalButtons = this.externalActions?.map((a) => {
-            const tooltip = a.tooltip ? `title="${this._escapeHtml(a.tooltip)}"` : "";
+            const tooltip = a.tooltip ? `title="${escapeHtml(a.tooltip)}"` : "";
             return `<button data-action="${a.action}" ${tooltip}>${a.label}</button>`;
           }) || [];
 
@@ -233,7 +246,7 @@ td {
         </table>
       </div>
       <div class="pagination">${paginationHtml}</div>
-      ${this.errorMessage ? `<div class="error">${this._escapeHtml(this.errorMessage)}</div>` : ""}
+      ${this.errorMessage ? `<div class="error">${escapeHtml(this.errorMessage)}</div>` : ""}
     `;
 
     this.shadowRoot.querySelectorAll("button").forEach((btn) => btn.addEventListener("click", () => this._handleAction(btn)));
@@ -279,14 +292,29 @@ td {
     }
 
     if (action === "save") {
-      const inputs = Array.from(this.shadowRoot.querySelectorAll(`tr[data-id="${id}"] input`));
+      // Selecciona inputs y textareas
+      const fields = Array.from(
+        this.shadowRoot.querySelectorAll(`tr[data-id="${id}"] input, tr[data-id="${id}"] textarea`)
+      );
+
       const newValues = {};
-      inputs.forEach((inp) => (newValues[inp.dataset.field] = inp.value.trim()));
-      const event = new CustomEvent("before-save-row", { detail: { row, newValues }, bubbles: true, composed: true, cancelable: true });
+      fields.forEach((el) => {
+        newValues[el.dataset.field] = el.value.trim();
+      });
+
+      const event = new CustomEvent("before-save-row", {
+        detail: { row, newValues },
+        bubbles: true,
+        composed: true,
+        cancelable: true
+      });
+
       if (!this.dispatchEvent(event)) return;
+
       Object.assign(row, newValues);
       this.editingId = null;
       this._render();
+
       this.dispatchEvent(new CustomEvent("save-row", { detail: row, bubbles: true, composed: true }));
     }
 
@@ -319,10 +347,6 @@ td {
     this._render();
   }
 
-  _escapeHtml(str) {
-    const safeStr = String(str ?? "");
-    return safeStr.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") || "";
-  }
 }
 
 customElements.define("simple-table-component", SimpleTableComponent);

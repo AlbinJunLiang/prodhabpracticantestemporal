@@ -1,4 +1,6 @@
-class AdminPalabraComponent extends HTMLElement {
+import { escapeHtml } from "../../util/juegoFunctionUtility.js";
+
+export  class AdminPalabraComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -6,8 +8,6 @@ class AdminPalabraComponent extends HTMLElement {
     this._page = 1;
     this._itemsPerPage = 3;
     this._itemStates = new Map();
-
-
 
     this._defaultTexts = {
       placeholder: "Título del nuevo ítem principal...",
@@ -516,7 +516,7 @@ textarea.edit-title {
 
         if (state.editing) {
           el.innerHTML = `
-            <textarea class="edit-title">${item.titulo}</textarea>
+            <textarea class="edit-title">${escapeHtml(item.titulo)}</textarea>
             <div class="save-row">
               <button class="save-sub-btn btn-save">${this._texts.saveButton}</button>
               <button class="cancel-sub-btn btn-cancel">${this._texts.cancelButton}</button>
@@ -551,7 +551,7 @@ textarea.edit-title {
         } else {
           el.innerHTML = `
             <div class="title-row">
-              <div class="title-text"><span class="check">✔</span><div class="title-content">${item.titulo
+              <div class="title-text"><span class="check">✔</span><div class="title-content">${escapeHtml(item.titulo)
             }</div></div>
             </div>
         <div class="btn-row">
@@ -568,13 +568,13 @@ textarea.edit-title {
               ${item.subItems
               .map(
                 (s) =>
-                  `<div class="chip" data-id="${s.id}"><span>${s.texto}</span><button>×</button></div>`
+                  `<div class="chip" data-id="${s.id}"><span>${escapeHtml(s.texto)}</span><button>×</button></div>`
               )
               .join("")}
               ${state.pendingSubItems
               .map(
                 (s) =>
-                  `<div class="chip pending-chip" data-id="${s.id}"><span>${s.texto}</span><button>×</button></div>`
+                  `<div class="chip pending-chip" data-id="${s.id}"><span>${escapeHtml(s.texto)}</span><button>×</button></div>`
               )
               .join("")}
             </div>

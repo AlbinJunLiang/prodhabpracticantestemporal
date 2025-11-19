@@ -1,4 +1,4 @@
-class AdminPalabraComponent extends HTMLElement {
+export  class AdminPalabraComponent extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -6,8 +6,6 @@ class AdminPalabraComponent extends HTMLElement {
         this._page = 1;
         this._itemsPerPage = 3;
         this._itemStates = new Map();
-
-
 
         this._defaultTexts = {
             placeholder: "Título del nuevo ítem principal...",
@@ -84,15 +82,10 @@ class AdminPalabraComponent extends HTMLElement {
   <div id="pageInfo"></div>
   <button id="nextBtn" class="page-btn"></button>
 </div>
-
-
   </section>
 </div>`;
         this.$ = (sel) => this.shadowRoot.querySelector(sel);
     }
-
-
-
 
     static get observedAttributes() {
         return ["title"];
@@ -320,16 +313,12 @@ class AdminPalabraComponent extends HTMLElement {
             });
         }
 
-        // Dentro de _bindItemEvents(el, item, absIdx)
         const subChips = el.querySelectorAll(".sublist .chip button");
         subChips.forEach((btn) => {
             btn.addEventListener("click", (e) => {
                 const chipEl = e.target.closest(".chip");
                 const subId = chipEl.dataset.id;
 
-                // Eliminar solo localmente
-
-                // También eliminar de pendientes si existe
                 const state = this._itemStates.get(item.id);
                 if (state?.pendingSubItems) {
                     state.pendingSubItems = state.pendingSubItems.filter(
@@ -488,10 +477,6 @@ class AdminPalabraComponent extends HTMLElement {
         ];
     }
 
-    // Dentro de la clase ItemsManager
-    // Dentro de ItemsManager
-    // Dentro de ItemsManager
-    // Dentro de ItemsManager
     eliminarSubitemLocal(subId) {
         if (!subId) return false;
         let eliminado = false;

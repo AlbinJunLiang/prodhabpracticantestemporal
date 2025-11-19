@@ -1,4 +1,4 @@
-class AdminUserPanelComponent extends HTMLElement {
+export  class AdminUserPanelComponent extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
@@ -12,7 +12,7 @@ class AdminUserPanelComponent extends HTMLElement {
   resetearContenido() {
     const contentArea = this.shadowRoot.getElementById("content-area");
     if (contentArea) {
-      contentArea.style.display = "block"; // Asegura que esté visible
+      contentArea.style.display = "block"; 
       contentArea.innerHTML = `
         <h2>Bienvenido, Administrador</h2>
         <p>Selecciona una opción para gestionar usuarios.</p>
@@ -63,7 +63,6 @@ class AdminUserPanelComponent extends HTMLElement {
           this.handleAction(e.target.dataset.action)
         );
       });
-    // Asignar evento para Cancelar
     this.shadowRoot.querySelectorAll('button[data-action="cancelar"]').forEach(btn => {
       btn.addEventListener("click", () => this.resetearContenido());
     });

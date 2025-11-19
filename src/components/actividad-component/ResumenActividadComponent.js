@@ -1,4 +1,7 @@
-class ResumenActividadComponent extends HTMLElement {
+import { obtenerEstadisticas } from "../../services/resultadoJuegoService.js";
+
+
+export class ResumenActividadComponent extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
@@ -127,7 +130,7 @@ class ResumenActividadComponent extends HTMLElement {
 
     async fetchData() {
         const idJuego = this.getAttribute("id-juego") || 17;
-        const data = await resultadoJuegoService.obtenerEstadisticas(Number(idJuego));
+        const data = await obtenerEstadisticas(Number(idJuego));
         if (!data) return;
 
         this.updateData({

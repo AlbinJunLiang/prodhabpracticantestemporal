@@ -1,71 +1,28 @@
-/**
- * ==============================
- * Variables / objetos globales externos
- * ==============================
- */
+// archivo: modules/tabla-rango-evaluacion.js
+// tipo ES Module
 
-/**
- * @global #tabla-rango-evaluacion
- * @description Tabla de rangos de evaluación existente en el DOM
- */
-
-/**
- * ==============================
- * Servicios / funciones externas
- * ==============================
- */
-
-/**
- * @function RangoEvaluacionService.obtenerPorJuego
- * @async
- * @description Obtiene todos los rangos de evaluación de un juego específico
- */
-
-/**
- * @function RangoEvaluacionService.crear
- * @async
- * @description Crea un nuevo rango de evaluación
- */
-
-/**
- * @function RangoEvaluacionService.editar
- * @async
- * @description Edita un rango de evaluación existente
- */
-
-/**
- * @function RangoEvaluacionService.eliminar
- * @async
- * @description Elimina un rango de evaluación existente
- */
-
-/**
- * @function utilModalJuegos.mostrarMensajeModal
- * @description Muestra un modal con mensaje o confirmación al usuario
- */
+import { obtenerPorJuego, crear, editar,eliminar } from "../../src/services/rangoEvaluacionService.js"
+import { mostrarMensajeModal } from '../util/juegoFunctionUtility.js';
+import { getJuegoSeleccionado} from "../controllers/AdminJuegosController.js";
 
 
-(() => {
+const tablaExistente = document.getElementById("tabla-rango-evaluacion");
 
-
-  const tablaExistente = document.getElementById("tabla-rango-evaluacion");
+export function inicializarTablaRangoEvaluacion() {
 
   document.addEventListener("tabla-rango-evaluacion", async (e) => {
 
-    const idJuego = document.getElementById("tabla-rango-evaluacion").getAttribute('service-id');
-
+    const idJuego = getJuegoSeleccionado();
     const tabla = e.detail.tabla;
     if (!tabla || tabla.__initialized) return;
     tabla.__initialized = true;
 
-
-
     tabla.hiddenColumns = ["id", "idJuego"];
-
+    tabla.columnNames = { rangoMaximo: "Rango máximo", rangoMinimo: "Rango mínimo" };
 
     const cargarDatos = async () => {
       try {
-        const data = await RangoEvaluacionService.obtenerPorJuego(idJuego);
+        const data = await obtenerPorJuego(idJuego);
         tabla.dataSource = data.map(u => ({
           id: u.idRangoEvaluacion,
           idJuego: u.idJuego,
@@ -75,7 +32,6 @@
         }));
       } catch (err) {
         console.error("Error cargando datos:", err);
-
         tabla.columnNames = {
           rangoMinimo: "Rango mínimo",
           rangoMaximo: "Rango máximo",
@@ -84,8 +40,6 @@
       }
     };
 
-    tabla.columnNames = { rangoMaximo: "Rango máximo", rangoMinimo: "Rango mínimo" };
-
     await cargarDatos();
 
     // Guardar fila
@@ -93,27 +47,25 @@
       event.preventDefault();
       const { row, isNew, id } = event.detail;
 
-
-
       const { valido, mensaje } = validarRangoEvaluacion(row.rangoMinimo, row.rangoMaximo);
       if (!valido) {
-        utilModalJuegos.mostrarMensajeModal("Error", mensaje);
+        mostrarMensajeModal("Error", mensaje);
         return;
       }
 
-
       try {
         if (isNew) {
-          const creado = await RangoEvaluacionService.crear({
+          const creado = await crear({
             rangoMinimo: Number(row.rangoMinimo),
             rangoMaximo: Number(row.rangoMaximo),
             mensaje: row.mensaje,
           }, idJuego);
+
           const fila = tabla.data.find(r => r._id === id);
           Object.assign(fila, { ...row, id: creado.idRangoEvaluacion });
           delete fila._isNew;
         } else {
-          await RangoEvaluacionService.editar(row.id, {
+          await editar(row.id, {
             rangoMinimo: Number(row.rangoMinimo),
             rangoMaximo: Number(row.rangoMaximo),
             mensaje: row.mensaje,
@@ -124,12 +76,11 @@
         tabla.editingRowId = null;
         tabla._render();
       } catch (err) {
-        utilModalJuegos.mostrarMensajeModal('Error', err.message, false);
+        mostrarMensajeModal('Error', err.message, false);
       }
     });
 
-
-
+    // Eliminar fila
     tabla.addEventListener("row-delete-request", async (event) => {
       event.preventDefault();
       const idInterno = event.detail.id;
@@ -137,36 +88,29 @@
       const idReal = rowEl?.dataset.dbId;
 
       if (!idReal) {
-        utilModalJuegos.mostrarMensajeModal('Mensaje', "No se encontró el ID del backend para eliminar.");
+        mostrarMensajeModal('Mensaje', "No se encontró el ID del backend para eliminar.");
         return;
       }
 
-      utilModalJuegos.mostrarMensajeModal(
+      mostrarMensajeModal(
         "Confirmar eliminación",
         "¿Seguro que quieres eliminar esta fila?",
         async () => {
           try {
-            await RangoEvaluacionService.eliminar(idReal);
-
+            await eliminar(idReal);
             tabla.data = tabla.data.filter(r => r._id !== idInterno);
-
             const totalPages = Math.max(1, Math.ceil(tabla.data.length / tabla.pageSize));
             if (tabla.page > totalPages) tabla.page = totalPages;
-
             tabla._render();
-
-            utilModalJuegos.mostrarMensajeModal("Aviso", "Fila eliminada correctamente.");
-
+            mostrarMensajeModal("Aviso", "Fila eliminada correctamente.");
           } catch (error) {
-            utilModalJuegos.mostrarMensajeModal('Error', 'No se pudo eliminar.');
+            mostrarMensajeModal('Error', 'No se pudo eliminar.');
             console.error(error);
           }
         }
       );
     });
-
   });
-
 
   function validarRangoEvaluacion(min, max) {
     const minNum = Number(min);
@@ -190,13 +134,12 @@
     return { valido: true };
   }
 
-  // Para tablas que ya existen en el DOM al cargar la página
+  // Inicializar tabla existente si ya está en el DOM
   if (tablaExistente) {
-    // Dispatch manual para que se inicialice mediante el listener
     tablaExistente.dispatchEvent(new CustomEvent("tabla-rango-evaluacion", {
       bubbles: true,
       composed: true,
       detail: { tabla: tablaExistente }
     }));
   }
-})();
+}

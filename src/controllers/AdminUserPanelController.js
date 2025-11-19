@@ -1,88 +1,51 @@
-/**
- * ==============================
- * Variables / objetos globales externos
- * ==============================
- */
+// archivo: adminUserPanelController.js
+// ES Module
 
-/**
- * @element admin-user-panel
- * @description Componente del panel de administración de usuarios
- */
+import { cambiarClave, crearUsuario, desactivarUsuario } from '../services/usuarioService.js';
+import { mostrarMensajeModal } from '../util/juegoFunctionUtility.js'
 
-/**
- * ==============================
- * Servicios / funciones externas
- * ==============================
- */
+export function inicializarAdminUserPanel() {
+  const panel = document.querySelector("admin-user-panel");
 
-/**
- * @function usuarioService.crearUsuario
- * @async
- * @description Crea un nuevo usuario en el backend
- */
+  if (!panel) return;
 
-/**
- * @function usuarioService.cambiarClave
- * @async
- * @description Cambia la contraseña de un usuario existente en el backend
- */
-
-/**
- * @function usuarioService.desactivarUsuario
- * @async
- * @description Desactiva la cuenta de un usuario en el backend
- */
-
-/**
- * @function utilModalJuegos.mostrarMensajeModal
- * @description Muestra un modal con mensaje o confirmación al usuario
- */
-
-
-
-(() => {
-
-    const panel = document.querySelector("admin-user-panel");
-
-    if (panel) {
-        panel.addEventListener("crear-usuario-request", async (e) => {
-            console.log(e.detail.correo)
-
-
-            try {
-                const result = await usuarioService.crearUsuario(e.detail);
-                if (result) {
-                    utilModalJuegos.mostrarMensajeModal("Mensaje", "Usuario creado exitósamente.", false);
-                }
-            } catch (err) {
-                utilModalJuegos.mostrarMensajeModal("Mensaje", err.message, false)
-            }
-        });
-
-        panel.addEventListener("cambiar-clave-request", async (e) => {
-            try {
-                const { correo, nuevaClave } = e.detail;
-                const result = await usuarioService.cambiarClave(correo, nuevaClave);
-                if (result) {
-                    utilModalJuegos.mostrarMensajeModal("Mensaje", "Contraseña actualizada exitósamente.", false)
-                    panel.resetearContenido();
-                }
-            } catch (err) {
-                utilModalJuegos.mostrarMensajeModal("Mensaje", err.message, false)
-            }
-        });
-
-        panel.addEventListener("desactivar-usuario-request", async (e) => {
-            try {
-                const { correo } = e.detail;
-                const result = await usuarioService.desactivarUsuario(correo);
-                if (result) {
-                    utilModalJuegos.mostrarMensajeModal("Mensaje", "Cuenta ha sido desactivada.", false)
-                    panel.resetearContenido();
-                }
-            } catch (err) {
-                utilModalJuegos.mostrarMensajeModal("Mensaje", err.message, false)
-            }
-        });
+  // Crear usuario
+  panel.addEventListener("crear-usuario-request", async (e) => {
+    try {
+      const result = await crearUsuario(e.detail);
+      if (result) {
+        mostrarMensajeModal("Mensaje", "Usuario creado exitósamente.", false);
+      }
+    } catch (err) {
+      mostrarMensajeModal("Mensaje", err.message, false);
     }
-})();
+  });
+
+  // Cambiar clave
+  panel.addEventListener("cambiar-clave-request", async (e) => {
+    try {
+      const { correo, nuevaClave } = e.detail;
+      const result = await cambiarClave(correo, nuevaClave);
+      if (result) {
+        mostrarMensajeModal("Mensaje", "Contraseña actualizada exitósamente.", false);
+        panel.resetearContenido();
+      }
+    } catch (err) {
+      mostrarMensajeModal("Mensaje", err.message, false);
+    }
+  });
+
+  // Desactivar usuario
+  panel.addEventListener("desactivar-usuario-request", async (e) => {
+    try {
+      const { correo } = e.detail;
+      const result = await desactivarUsuario(correo);
+      if (result) {
+        mostrarMensajeModal("Mensaje", "Cuenta ha sido desactivada.", false);
+        panel.resetearContenido();
+      }
+    } catch (err) {
+      mostrarMensajeModal("Mensaje", err.message, false);
+    }
+  });
+}
