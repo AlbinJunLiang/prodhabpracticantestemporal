@@ -453,8 +453,8 @@ button:disabled {
 }
 
 .summary {
-  font-weight: 600;
-  color: rgb(25, 41, 82);
+  font-weight: 400;
+  color: rgba(0, 0, 0, 1);
   margin-left: 5px;
 }
 
@@ -478,9 +478,8 @@ button:disabled {
 }
 
 .retroalimentacion {
-  margin-top: 10px;
-  color: rgb(0, 84, 134);
-  font-weight: bold;
+  margin-top: 2px;
+  color: rgba(0, 0, 0, 1);
 }
 
 .progress {

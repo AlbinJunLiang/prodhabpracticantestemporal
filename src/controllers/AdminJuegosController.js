@@ -130,12 +130,12 @@ export async function crearTablaDinamica(idTipoJuego, idContenedor, title) {
 
             if (idTipoJuego === tipoJuego.TEST) {
                 document.getElementById(idContenedor).innerHTML = `    
- <admin-header-component title="${e.detail.row.nombre}"></admin-header-component>
-    <form-test-component modo="registrar" service-id='${idJuegoSeleccionado}'></form-test-component>
-    <test-viewer-component service-id='${idJuegoSeleccionado}'></test-viewer-component>
-    <table-component id="tabla-rango-evaluacion" style="margin-bottom: 15px; margin-top: 25px;" service-id='${idJuegoSeleccionado}'></table-component>
+            <admin-header-component title="${e.detail.row.nombre}"></admin-header-component>
+            <form-test-component modo="registrar" service-id='${idJuegoSeleccionado}'></form-test-component>
+            <test-viewer-component service-id='${idJuegoSeleccionado}'></test-viewer-component>
+            <table-component id="tabla-rango-evaluacion" style="margin-bottom: 15px; margin-top: 25px;" service-id='${idJuegoSeleccionado}'></table-component>
                    ${renderResumentActividad(idJuegoSeleccionado)}
-`;
+            `;
                 const form = document.querySelector("form-test-component");
                 const viewer = document.querySelector("test-viewer-component");
                 if (form && viewer) {
@@ -143,11 +143,11 @@ export async function crearTablaDinamica(idTipoJuego, idContenedor, title) {
                 }
             } else if (idTipoJuego === tipoJuego.ORDENAR_PALABRAS) {
                 document.getElementById(idContenedor).innerHTML = `
-  <admin-header-component
+          <admin-header-component
           title="Ordenar palabras"
           hide-buttons
-        ></admin-header-component>
-        <admin-palabra-component
+          ></admin-header-component>
+          <admin-palabra-component
           id="admin-ordenar-palabras"
           add-button-text="Agregar"
           edit-button-text="Modificar"

@@ -1,6 +1,7 @@
 import { registrarJuego } from "../../services/resultadoJuegoService.js";
 import { obtenerDatosSopa } from "../../services/sopaLetrasService.js";
-import { escapeHtml } from "../../util/juegoFunctionUtility.js";
+import { escapeHtml, mezclar } from "../../util/juegoFunctionUtility.js";
+import { ModalSopa } from "./modal-sopa.js";
 
 export class SopaLetrasComponent extends HTMLElement {
 
@@ -18,11 +19,9 @@ export class SopaLetrasComponent extends HTMLElement {
         this.words = [];
         this.link = null;
         this.descripcion = null;
-        this.title = "Sopa de Letras";
         this.nombre = null;
         this.timer = 0;
         this.timerInterval = null;
-        this.idSopa = null;
         this.ABC = [..."ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"];
         this.DIRS = [
             { dx: 1, dy: 0 },
@@ -35,6 +34,9 @@ export class SopaLetrasComponent extends HTMLElement {
             { dx: -1, dy: 1 },
         ];
 
+    }
+    connectedCallback() {
+        this.idSopa = this.getAttribute('id-sopa');
         this.init();
     }
 
@@ -46,8 +48,8 @@ export class SopaLetrasComponent extends HTMLElement {
             return;
         }
 
-        this.render();   
-        this.nuevoJuego(); 
+        this.render();
+        this.nuevoJuego();
 
         const modal1 = this.shadowRoot.getElementById("modal1");
         if (modal1?.open) modal1.open();
@@ -73,7 +75,8 @@ export class SopaLetrasComponent extends HTMLElement {
                 .slice(0, 15);
         } else {
             // Obtener palabras del servicio
-            const res = await obtenerDatosSopa(Number(this.getAttribute('id-sopa')) || null);
+            const res = await obtenerDatosSopa(Number(this.idSopa) || null);
+            console.log(this.idSopa)
             this.idSopa = res.idJuego;
             if (res.idJuego == null) {
                 this.shadowRoot.textContent = `<p>Juego no disponible.</p>`;
@@ -419,7 +422,7 @@ export class SopaLetrasComponent extends HTMLElement {
     }
 
     colocarPalabra(word) {
-        const dirs = this.shuffle([...this.DIRS]);
+        const dirs = mezclar([...this.DIRS]);
         const reversed = Math.random() < 0.5;
         const w = reversed ? [...word].reverse().join("") : word;
         let bestSpot = null;
@@ -512,26 +515,26 @@ export class SopaLetrasComponent extends HTMLElement {
         }
     }
 
- renderWords() {
-    const cont = this.shadowRoot.getElementById("words");
-    if (!cont) return;
-    cont.innerHTML = "";
-    this.words.forEach((w) => {
-        const div = document.createElement("div");
-        div.className = "word";
-        div.id = `w-${w}`;
+    renderWords() {
+        const cont = this.shadowRoot.getElementById("words");
+        if (!cont) return;
+        cont.innerHTML = "";
+        this.words.forEach((w) => {
+            const div = document.createElement("div");
+            div.className = "word";
+            div.id = `w-${w}`;
 
-        const span = document.createElement("span");
-        span.textContent = w; // Escapado seguro
-        const small = document.createElement("small");
-        small.id = `s-${w}`;
-        small.textContent = "—";
+            const span = document.createElement("span");
+            span.textContent = w; // Escapado seguro
+            const small = document.createElement("small");
+            small.id = `s-${w}`;
+            small.textContent = "—";
 
-        div.appendChild(span);
-        div.appendChild(small);
-        cont.appendChild(div);
-    });
-}
+            div.appendChild(span);
+            div.appendChild(small);
+            cont.appendChild(div);
+        });
+    }
 
     startSel(e) {
         this.selecting = true;
@@ -754,13 +757,7 @@ export class SopaLetrasComponent extends HTMLElement {
         );
     }
 
-    shuffle(a) {
-        for (let i = a.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [a[i], a[j]] = [a[j], a[i]];
-        }
-        return a;
-    }
+
 
     addEventListeners() {
         const btnRestart = this.shadowRoot.getElementById("btnRestart");
@@ -773,8 +770,9 @@ export class SopaLetrasComponent extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ["words", "size", "title"];
+        return ["words", "size", "title", "id-sopa"];
     }
+
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (oldValue === newValue || !this.isConnected) return;

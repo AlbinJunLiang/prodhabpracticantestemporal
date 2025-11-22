@@ -446,39 +446,35 @@ export class OrdenaLetrasComponent extends HTMLElement {
   }
 
 
+resaltarPalabras(texto, palabrasArray) {
+  // Normalizamos solo para comparación
+  const normalizar = (str) =>
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  resaltarPalabras(texto, palabras) {
-    const normalizar = (str) =>
-      str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // Conjunto de palabras objetivo normalizadas
+  const palabrasSet = new Set(
+    palabrasArray
+      .map(p => normalizar(p))
+      .filter(Boolean)
+  );
 
-    let resultado = escapeHtml(texto);
+  let resultado = escapeHtml(texto);
 
-    palabras.forEach((palabra) => {
-      const palabraNorm = normalizar(palabra);
-      const textoNorm = normalizar(resultado);
+  // Esta regex captura SOLO palabras completas (letras con acentos y ñ)
+  const regexPalabra = /[a-záéíóúüñ]+/gi;
 
-      let match;
-      const indices = [];
-      const regex = new RegExp(palabraNorm, "gi");
-      while ((match = regex.exec(textoNorm)) !== null) {
-        indices.push([match.index, match.index + match[0].length]);
-      }
+  resultado = resultado.replace(regexPalabra, (palabraOriginal) => {
+    const palabraNorm = normalizar(palabraOriginal);
 
-      // Reemplazar desde el final para no romper los índices
-      for (let i = indices.length - 1; i >= 0; i--) {
-        const [start, end] = indices[i];
-        resultado =
-          resultado.slice(0, start) +
-          "<strong>" +
-          resultado.slice(start, end) +
-          "</strong>" +
-          resultado.slice(end);
-      }
-    });
+    // Solo resaltar si la palabra completa está en la lista
+    if (palabrasSet.has(palabraNorm)) {
+      return `<strong>${palabraOriginal}</strong>`;
+    }
+    return palabraOriginal;
+  });
 
-    return resultado;
-  }
-
+  return resultado;
+}
   startConfetti() {
     if (!this.confettiCanvas) return;
     this.confettiCanvas.classList.remove("oculto");

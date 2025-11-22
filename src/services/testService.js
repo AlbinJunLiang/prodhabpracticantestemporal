@@ -1,5 +1,6 @@
 import { CONFIG_JUEGO_PRODHAB } from "../juegosEnvironments.js";
-import {  escapeAttr, escapeHtml} from "../util/juegoFunctionUtility.js";
+import { escapeAttr, escapeHtml } from "../util/juegoFunctionUtility.js";
+import { cargarTest, evaluarTest } from "../util/localGamesFunctions.js";
 
 
 export async function obtenerPreguntasTest(idTest) {
@@ -9,17 +10,27 @@ export async function obtenerPreguntasTest(idTest) {
       idTest = params.get("idTest");
     }
 
-    const res = await fetch(
-      `${CONFIG_JUEGO_PRODHAB.apiUrl}/api/Test/preguntas/${Number(idTest)}`
-    );
+    const jsonFile = CONFIG_JUEGO_PRODHAB.getJsonUrl() || "";
 
-    if (!res.ok) throw new Error("Error al obtener preguntas");
-    return await res.json();
+    let data = null;
+
+    if (jsonFile.toLowerCase().endsWith(".json")) {
+      // Cargar desde archivo JSON local
+      data = await cargarTest(jsonFile, Number.parseInt(idTest));
+    } else {
+      // Cargar desde API
+      const res = await fetch(`${CONFIG_JUEGO_PRODHAB.apiUrl}/api/Test/preguntas/${Number(idTest)}`);
+      if (!res.ok) throw new Error("Error al obtener preguntas desde API");
+      data = await res.json();
+    }
+
+    return data; // ya es JSON listo para usar
   } catch (error) {
     console.error("Error fetching questions:", error);
     return [];
   }
 }
+
 
 export async function enviarRespuestasTest(respuestas, idTest) {
   try {
@@ -28,14 +39,20 @@ export async function enviarRespuestasTest(respuestas, idTest) {
       idTest = params.get("idTest");
     }
 
-    const response = await fetch(
-      `${CONFIG_JUEGO_PRODHAB.apiUrl}/api/Test/evaluar/${idTest}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(respuestas)
-      }
-    );
+    const jsonUrl = CONFIG_JUEGO_PRODHAB.getJsonUrl();
+
+    // Si hay JSON local, usar la función evaluarTest
+    if (jsonUrl) {
+      const resultado = await evaluarTest(respuestas, jsonUrl, Number.parseInt(idTest));
+      return resultado;
+    }
+
+    // Si no hay JSON, usar API
+    const response = await fetch(`${CONFIG_JUEGO_PRODHAB.apiUrl}/api/Test/evaluar/${idTest}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(respuestas),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();

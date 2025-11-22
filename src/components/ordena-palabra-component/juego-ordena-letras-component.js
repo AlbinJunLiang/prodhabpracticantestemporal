@@ -1,5 +1,9 @@
 import { obtenerTextoYPalabras } from "../../services/ordenaLetrasService.js";
 import { escapeAttr } from "../../util/juegoFunctionUtility.js";
+import { IntroAdivinaComponent } from "./intro-adivina-component.js";
+
+import { OrdenaLetrasComponent } from "./ordena-letras-component.js";
+
 
 export class JuegoOrdenaLetras extends HTMLElement {
   constructor() {
@@ -27,9 +31,9 @@ export class JuegoOrdenaLetras extends HTMLElement {
     const textoYPalabras = await obtenerTextoYPalabras(parseInt(this.idOrdenar));
     this.idOrdenar = textoYPalabras.idJuego;
     palabrasArray = palabrasArray || textoYPalabras.palabras || ["ejemplo"];
-    introText = introText || textoYPalabras.texto || "Este es un texto de ejemplo.";
+    introText = introText || textoYPalabras.detalle || "Este es un texto de ejemplo.";
     tema = tema || textoYPalabras.tema || "Juego no disponible";
-    detalle = detalle || textoYPalabras.detalle || "Juego no disponible";
+    detalle = detalle || textoYPalabras.texto || "Juego no disponible";
 
     videoFinalSrc = videoFinalSrc || textoYPalabras.videoFinalSrc || "video1.webm";
     inicioVideoSrc = inicioVideoSrc || textoYPalabras.inicioVideoSrc || "video2.webm";
@@ -101,7 +105,7 @@ export class JuegoOrdenaLetras extends HTMLElement {
     <div class="cards-wrapper">
       <div class="card active">
 <intro-adivina-component 
-  intro-title="${escapeAttr(detalle)}" 
+  intro-title="${escapeAttr(tema)}" 
   video-src="${escapeAttr(inicioVideoSrc)}" 
   data-texto="${escapeAttr(introText)}"
   style="width: 100%; height: 100%;">
@@ -113,7 +117,7 @@ export class JuegoOrdenaLetras extends HTMLElement {
   style="width: 100%; height: 100%;"
   video-final-src="${escapeAttr(videoFinalSrc)}"
   words='${escapeAttr(JSON.stringify(palabrasArray))}'
-  intro-text="${escapeAttr(introText)}"
+  intro-text="${escapeAttr(detalle)}"
   id-ordenar="${escapeAttr(this.idOrdenar)}"
   tema="${escapeAttr(tema)}">
 </ordena-letras-component>

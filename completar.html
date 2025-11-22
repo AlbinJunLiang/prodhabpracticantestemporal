@@ -36,18 +36,33 @@
   </head>
 
   <body>
-    <div class="contenedor">
-      <completar-texto-component
-        img-intro="public/images/superdato_1.png"
-        webm-final="public/video/superdato_escribe.webm"
-        img-rondas="public/images/superdato_manos_cintura.png"
-      ></completar-texto-component>
-    </div>
+    <script type="module">
+      import { CONFIG_JUEGO_PRODHAB } from "./src/juegosEnvironments.js";
+      import "./src/components/completar/completar-texto-component.js";
+      CONFIG_JUEGO_PRODHAB.setJsonUrl("juegos.json");
 
-    <script src="src/util/juegoFunctionUtility.js"></script>
-    <script src="src/juegosEnvironments.js"></script>
-    <script src="src/services/resultadoJuegoService.js"></script>
-    <script src="src/services/completarTextoService.js"></script>
-    <script src="src/components/completar/completar-texto-component.js"></script>
+      const contenedor = document.querySelector(".contenedor");
+
+      // Crear el componente dinámicamente
+      const completar = document.createElement("completar-texto-component");
+
+      // Asignar atributos
+      completar.setAttribute("img-intro", "public/images/superdato_1.png");
+      completar.setAttribute(
+        "webm-final",
+        "public/video/superdato_escribe.webm"
+      );
+      completar.setAttribute(
+        "img-rondas",
+        "public/images/superdato_manos_cintura.png"
+      );
+
+      completar.setAttribute("id-completar", "5");
+
+      // Insertarlo en el contenedor
+      contenedor.appendChild(completar);
+    </script>
+
+    <div class="contenedor"></div>
   </body>
 </html>

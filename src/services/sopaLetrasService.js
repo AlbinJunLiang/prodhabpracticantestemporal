@@ -1,20 +1,38 @@
 import { CONFIG_JUEGO_PRODHAB } from "../juegosEnvironments.js";
+import { obtenerJuegoPalabras } from "../util/localGamesFunctions.js";
 
 export async function obtenerDatosSopa(idSopa) {
     try {
-        // Si no se pasó el ID, obtenerlo desde la URL (?idSopa=)
+        // Leer ID desde la URL si no se envió
         if (!idSopa) {
             const params = new URLSearchParams(window.location.search);
             idSopa = parseInt(params.get("idSopa"));
         }
 
-        const res = await fetch(
-            `${CONFIG_JUEGO_PRODHAB.apiUrl}/api/PalabraJuego/solo-palabras/${idSopa}`
-        );
+        if (!idSopa || isNaN(idSopa)) {
+            throw new Error("idSopa inválido");
+        }
 
-        if (!res.ok) throw new Error("Error al obtener datos de la API");
+        // Determinar si debe leer JSON o API
+        const jsonFile = CONFIG_JUEGO_PRODHAB.getJsonUrl();
 
-        const data = await res.json();
+        let data = null;
+
+        // Si hay JSON y termina en .json → cargar JSON local
+        if (jsonFile && jsonFile.toLowerCase().endsWith(".json")) {
+            data = await obtenerJuegoPalabras(jsonFile, idSopa);
+        } else {
+            // Cargar desde API
+            const res = await fetch(
+                `${CONFIG_JUEGO_PRODHAB.apiUrl}/api/PalabraJuego/solo-palabras/${idSopa}`
+            );
+
+            if (!res.ok) {
+                throw new Error("Error al obtener datos desde la API");
+            }
+
+            data = await res.json();
+        }
 
         return {
             idJuego: data.idJuego,
@@ -22,15 +40,17 @@ export async function obtenerDatosSopa(idSopa) {
             detalle: data.detalle || "",
             nombre: data.nombre || "Sopa de letras",
             palabras: Array.isArray(data.palabras)
-                ? data.palabras.map((p) => p.toUpperCase())
+                ? data.palabras.map(p => p.toUpperCase())
                 : []
         };
+
     } catch (err) {
         console.error("SopaLetrasService:", err);
 
+        // Datos de fallback
         return {
             idJuego: null,
-            tema: "Países",
+            descripcion: "Países",
             detalle: "Encuentra los nombres de países en la sopa de letras.",
             palabras: ["JAPÓN", "BRASIL", "FRANCIA", "CANADÁ"]
         };

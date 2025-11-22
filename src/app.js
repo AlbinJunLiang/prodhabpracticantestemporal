@@ -32,12 +32,10 @@ import { openAutoModal } from './util/modalJuegosProdhab.js';
 import { MenuJuegosComponent } from './components/menu-juegos-component/menu-juegos-component.js';
 import { getAtributos } from './juegosAssets.js';
 
-
-
 export function inyectarModuloAministradorjuegosPRODHAB(selector) {
-    const elemento = document.querySelector(selector);
-    if (elemento) {
-        elemento.innerHTML = `
+  const elemento = document.querySelector(selector);
+  if (elemento) {
+    elemento.innerHTML = `
         <div
           class="fondo-login"
           style="
@@ -100,25 +98,27 @@ export function inyectarModuloAministradorjuegosPRODHAB(selector) {
 
         <modal-component id="modal-admin-crud"></modal-component>
       `;
-        inicializarLogin();
-        inicializarTablaUsuarios();
-        inicializarSidenav();
-        inicializarAdminUserPanel();
-        inicializarTablaRangoEvaluacion();
-        inicializarSopaLetras();
-        inicializarOrdenarPalabras();
-        inicializarCompletarTexto();
-    }
+    inicializarLogin();
+    inicializarTablaUsuarios();
+    inicializarSidenav();
+    inicializarAdminUserPanel();
+    inicializarTablaRangoEvaluacion();
+    inicializarSopaLetras();
+    inicializarOrdenarPalabras();
+    inicializarCompletarTexto();
+  }
 }
 
 
 export function openMenuJuegos() {
-    const assetsJuego1 = getAtributos(1); // contiene correcta_svg, incorrecta_svg, character_png
-    const assetsJuego2 = getAtributos(2); // contiene video_final_src, inicio_video_src
-    const assetsJuego3 = getAtributos(3); // contiene img_intro, webm_final, img_rondas
-    const assetsJuego4 = getAtributos(4); // contiene modal1_video, modal2_video, superdato_img
+  const assetsJuego1 = getAtributos(1);// contiene correcta_svg, incorrecta_svg, character_png
+  const assetsJuego2 = getAtributos(2);
+  const assetsJuego3 = getAtributos(3);
+  const assetsJuego4 = getAtributos(4);
+  const assetsJuego5 = getAtributos(5);
 
-    openAutoModal(`
+
+  openAutoModal(`
         <menu-juegos-component
             correcta-svg='${assetsJuego1.correcta_svg}'
             incorrecta-svg='${assetsJuego1.incorrecta_svg}'
@@ -130,7 +130,9 @@ export function openMenuJuegos() {
             img-rondas='${assetsJuego3.img_rondas}'
             modal1-video='${assetsJuego4.modal1_video}'
             modal2-video='${assetsJuego4.modal2_video}'
-            superdato-img='${assetsJuego4.superdato_img}'>
+            superdato-img='${assetsJuego4.superdato_img}'
+            img-menu='${assetsJuego5.img_menu}'
+            >
         </menu-juegos-component>
     `);
 }

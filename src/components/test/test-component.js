@@ -1,4 +1,4 @@
-import { escapeHtml, mezclar, mostrarMensajeModal2}  from "../../util/juegoFunctionUtility.js";
+import { escapeHtml, mezclar, mostrarMensajeModal2 } from "../../util/juegoFunctionUtility.js";
 import {
     enviarRespuestasTest, convertirLinkConEstiloTest,
     interpolarMensajeTest, obtenerPreguntasTest, mapearPreguntaAPITest
@@ -30,6 +30,26 @@ export class TestComponent extends HTMLElement {
         this.img.alt = "Superdato";
         this.img.className = "pet-icon";
     }
+
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue === newValue) return;
+        switch (name) {
+            case "correcta_svg":
+                this.correctaSVG = newValue;
+                break;
+            case "incorrecta_svg":
+                this.incorrectaSVG = newValue;
+                break;
+            case "character_png":
+                this.characterPNG = newValue;
+                if (this.img) {
+                    this.img.src = newValue;
+                }
+                break;
+        }
+    }
+
 
     connectedCallback() {
         this.renderizar();
@@ -105,17 +125,17 @@ export class TestComponent extends HTMLElement {
 
     eventoReiniciar() {
         this.shadowRoot.getElementById('btn-reiniciar').addEventListener('click', () => {
-       
+
 
 
             mostrarMensajeModal2(
-    "Reiniciar examen",
-    "¿Estás seguro que deseas reiniciar el test?",
-    () => {
-        console.log("Usuario confirmó el reinicio");
-        this.reiniciarExamen(); // tu función que reinicia el test
-    }
-);
+                "Reiniciar examen",
+                "¿Estás seguro que deseas reiniciar el test?",
+                () => {
+                    console.log("Usuario confirmó el reinicio");
+                    this.reiniciarExamen(); // tu función que reinicia el test
+                }
+            );
 
         });
     }
@@ -428,15 +448,16 @@ export class TestComponent extends HTMLElement {
      * @returns {string} HTML de retroalimentación (puede estar vacío).
      */
     renderRetro(pregunta, respuestaSeleccionada) {
-        if (!respuestaSeleccionada) return '';
+        if (!respuestaSeleccionada || !respuestaSeleccionada.opciones) return '';
 
         return respuestaSeleccionada.opciones
-            .filter(o => o.seleccionada && o.retroalimentacion && o.retroalimentacion.trim())
+            .filter(o => o && o.retroalimentacion && o.retroalimentacion.trim()) // solo opciones con retroalimentación
             .map(o => {
-                return `<div class="retroalimentacion">${escapeHtml(o.retroalimentacion)}</div>`;
+                return `<div class="retroalimentacion" style="margin-bottom: 1px;">${escapeHtml(o.retroalimentacion)}</div>`;
             })
             .join('');
     }
+
     /**
  * Renderiza el bloque completo de una pregunta con sus opciones y retroalimentación.
  * 
@@ -510,16 +531,16 @@ export class TestComponent extends HTMLElement {
         }
         summaryDiv.innerHTML = `
     <div title="Número de preguntas donde todas las opciones correctas fueron seleccionadas de todas las preguntas del test.">
-        Items correctos: <strong>${totalPreguntasCorrectas}</strong> de <strong>${this.listaPreguntas.length}</strong>
+       ● Items correctos: <strong>${totalPreguntasCorrectas}</strong> de <strong>${this.listaPreguntas.length}</strong>
     </div>
     <div title="Número total de opciones correctas seleccionadas.">
-        Selecciones correctas: <strong>${correctas}</strong>
+       ● Selecciones correctas: <strong>${correctas}</strong>
     </div>
     <div title="Número total de respuestas incorrectas seleccionadas.">
-        Selecciones incorrectas: <strong>${fallos}</strong>
+       ● Selecciones incorrectas: <strong>${fallos}</strong>
     </div>
     <div title="Porcentaje de preguntas correctas sobre el total.">
-        Calificación: <strong>${calificacion}%</strong>
+       ● Calificación: <strong>${calificacion}%</strong>
     </div>
 `;
 

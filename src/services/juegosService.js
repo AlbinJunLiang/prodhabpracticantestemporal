@@ -1,13 +1,25 @@
 import { CONFIG_JUEGO_PRODHAB } from "../juegosEnvironments.js";
-import {  apiFetch} from "../util/juegoFunctionUtility.js";
+import { apiFetch } from "../util/juegoFunctionUtility.js";
+import { obtenerListaJuegos } from "../util/localGamesFunctions.js";
 
 export async function obtenerJuegos() {
     try {
+        const jsonFile = CONFIG_JUEGO_PRODHAB.getJsonUrl() || "";
+        
+        if (jsonFile.toLowerCase().endsWith(".json")) {
+            const dataLocal = await obtenerListaJuegos(jsonFile);
+            console.log(dataLocal)
+            return dataLocal; 
+        }
         const resp = await fetch(`${CONFIG_JUEGO_PRODHAB.apiUrl}/api/Juego`);
+
         if (!resp.ok) {
             throw new Error(`Error al obtener los juegos: ${resp.status} ${resp.statusText}`);
         }
-        return await resp.json();
+
+        const dataApi = await resp.json();
+        return dataApi;
+
     } catch (err) {
         console.error("Error en obtenerJuegos:", err);
         throw err;

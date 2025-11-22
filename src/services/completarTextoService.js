@@ -1,6 +1,7 @@
 // completarTextoService.js
 import { CONFIG_JUEGO_PRODHAB } from "../juegosEnvironments.js";
 import { apiFetch } from "../util/juegoFunctionUtility.js";
+import { obtenerJuegoPalabras } from "../util/localGamesFunctions.js";
 
 /* ---------------------- UTILIDADES INTERNAS ---------------------- */
 
@@ -95,42 +96,65 @@ export async function obtenerDatosCompletarTexto(idJuego) {
     return data;
 }
 
+
 export async function obtenerRondas(idJuego = 3) {
-    if (!idJuego) {
-        const params = new URLSearchParams(window.location.search);
-        idJuego = params.get("idCompletar");
+    try {
+        // Si no viene el ID, buscarlo en la URL
+        if (!idJuego) {
+            const params = new URLSearchParams(window.location.search);
+            idJuego = params.get("idCompletar");
+        }
+
+        idJuego = Number.parseInt(idJuego);
+
+        const jsonFile = CONFIG_JUEGO_PRODHAB.getJsonUrl() || "";
+
+        let data = null;
+
+        if (jsonFile && jsonFile.toLowerCase().endsWith(".json")) {
+            data = await obtenerJuegoPalabras(jsonFile, idJuego);
+        } else {
+            data = await obtenerDatosCompletarTexto(idJuego);
+        }
+
+        if (!Array.isArray(data.rondas)) return [];
+
+        const rondasFormateadas = data.rondas
+            .map(ronda => {
+                if (!Array.isArray(ronda.palabras) || ronda.palabras.length === 0)
+                    return null;
+
+                const palabrasLimpias = ronda.palabras
+                    .map(p => p.trim())
+                    .filter(p => p.length > 0);
+
+                if (palabrasLimpias.length === 0) return null;
+
+                const { formato, matches, distractores } =
+                    transformarFraseOrdenSecuencial(ronda.texto, palabrasLimpias);
+
+                if (matches.length === 0) return null;
+
+                return { texto: formato, espacios: matches, distractores };
+            })
+            .filter(r => r !== null);
+
+        return {
+            idJuego,
+            nombre: data.nombre ?? "",
+            rondas: rondasFormateadas,
+            descripcion: data.descripcion ?? "",
+            detalle: data.detalle ?? ""
+
+        };
+    } catch (error) {
+        console.error("Error en obtenerRondas:", error);
+
+        return {
+            exito: false,
+            rondas: []
+        };
     }
-
-    const data = await obtenerDatosCompletarTexto(idJuego);
-
-    if (!Array.isArray(data.rondas)) return [];
-
-    const rondasFormateadas = data.rondas
-        .map(ronda => {
-            if (!Array.isArray(ronda.palabras) || ronda.palabras.length === 0)
-                return null;
-
-            const palabrasLimpias = ronda.palabras
-                .map(p => p.trim())
-                .filter(p => p.length > 0);
-
-            if (palabrasLimpias.length === 0) return null;
-
-            const { formato, matches, distractores } =
-                transformarFraseOrdenSecuencial(ronda.texto, palabrasLimpias);
-
-            if (matches.length === 0) return null;
-
-            return { texto: formato, espacios: matches, distractores };
-        })
-        .filter(r => r !== null);
-
-    return {
-        idJuego,
-        rondas: rondasFormateadas,
-        descripcion: data.descripcion,
-        detalle: data.detalle
-    };
 }
 
 export async function obtenerRondasMapeadas(idJuego = 3) {

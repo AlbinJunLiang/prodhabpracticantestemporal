@@ -9,18 +9,18 @@
     </style>
   </head>
   <body>
-    
-    <test-component
-      style-url="src/components/test/test.css"
-      correcta_svg="public/images/correcta.svg"
-      incorrecta_svg="public/images/incorrecta.svg"
-      character_png="public/images/superdato_2.png"
-    ></test-component>
+    <script type="module">
+      import { CONFIG_JUEGO_PRODHAB } from "./src/juegosEnvironments.js";
+      import "./src/components/test/test-component.js";
 
-    <script src="src/util/juegoFunctionUtility.js"></script>
-    <script src="src/components/test/test.js"></script>
-    <script src="src/services/testService.js"></script>
-    <script src="src/juegosEnvironments.js"></script>
-    <script src="src/components/test/test-component.js"></script>
+      CONFIG_JUEGO_PRODHAB.setJsonUrl("juegos.json");
+      const testComp = document.createElement("test-component");
+      testComp.setAttribute("style-url", "src/components/test/test.css");
+      testComp.setAttribute("correcta_svg", "public/images/correcta.svg");
+      testComp.setAttribute("incorrecta_svg", "public/images/incorrecta.svg");
+      testComp.setAttribute("character_png", "public/images/superdato_2.png");
+      testComp.setAttribute("id-test", "2");
+      document.body.appendChild(testComp);
+    </script>
   </body>
 </html>

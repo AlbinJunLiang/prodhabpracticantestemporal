@@ -1,25 +1,27 @@
 import { getAtributos } from '../juegosAssets.js';
 
 export function aplicarEstilosResponsive(closeBtn) {
-  function ajustar() {
-    if (window.innerWidth <= 600) {
-      closeBtn.style.border = "none";
-      closeBtn.style.boxShadow = "none";
-      closeBtn.style.backgroundColor = "white";
-      closeBtn.style.marginRight = "2px";
-      closeBtn.style.fontSize = "0.8rem";
-      closeBtn.style.padding = "0.2rem 0.6rem";
-      closeBtn.textContent = "✖";
-    } else {
-      closeBtn.style.border = "2px solid #fffbfbff";
-      closeBtn.style.boxShadow = "0 2px 6px rgba(0,0,0,0.25)";
-      closeBtn.style.borderRadius = "0.8rem";
-      closeBtn.style.backgroundColor = "white";
-      closeBtn.style.fontSize = "1rem";
-      closeBtn.style.padding = "0.5rem 1rem";
-      closeBtn.textContent = "✖ Cerrar";
-    }
+function ajustar() {
+  if (window.innerWidth <= 600) {
+    // MÓVIL
+    closeBtn.style.border = "none";
+    closeBtn.style.boxShadow = "none";
+    closeBtn.style.backgroundColor = "white";
+    closeBtn.style.marginRight = "2px";
+    closeBtn.style.fontSize = "0.8rem";
+    closeBtn.style.padding = "0.2rem 0.6rem";
+    closeBtn.textContent = "✖";
+  } else {
+    // DESKTOP
+    closeBtn.style.boxShadow = "none"; // sin sombra
+    closeBtn.style.border = "2px solid rgba(0,0,0,0.2)"; // borde suave
+    closeBtn.style.borderRadius = "0.8rem";
+    closeBtn.style.backgroundColor = "rgba(255, 255, 255, 0.6)";
+    closeBtn.style.fontSize = "1rem";
+    closeBtn.style.padding = "0.5rem 1rem";
+    closeBtn.textContent = "✖ Cerrar";
   }
+}
 
   window.addEventListener("resize", ajustar);
   ajustar();
@@ -50,6 +52,7 @@ export async function openAutoModal(htmlContent) {
   });
   modal.setAttribute("role", "dialog");
   modal.setAttribute("aria-modal", "true");
+  
 
   const closeBtn = document.createElement("button");
   Object.assign(closeBtn.style, {

@@ -1,5 +1,5 @@
 import { obtenerJuegos } from "../../services/juegosService.js";
-import {  escapeHtml } from "../../util/juegoFunctionUtility.js";
+import { escapeHtml } from "../../util/juegoFunctionUtility.js";
 
 export class MenuJuegosComponent extends HTMLElement {
   constructor() {
@@ -56,6 +56,7 @@ h2 {
   font-weight: 700;
   margin-bottom: 0.5rem;
   text-align: center;
+  color: rgb(31,40,88);
 }
 .subtitle {
   color: var(--text-light);
@@ -283,6 +284,21 @@ h2 {
     justify-content: center;
   }
 }
+
+.titulo-linea {
+  display: flex;
+  align-items: center;     
+  justify-content: center; 
+  gap: 10px;  
+  text-align: center;
+}
+
+.titulo-linea img {
+  width: 40px;     
+  height: auto;
+}
+
+
 @media (max-width: 480px) {
   h2 {
     font-size: 1.8rem;
@@ -297,9 +313,16 @@ h2 {
   }
 }
           </style>
-
-          <div class="container">
+            <div class="container">
+            <div class="titulo-linea">
+            <img 
+              src="${this.getAttribute('img-menu')}" 
+              alt="Icono"
+              onerror="this.style.display='none'"
+            >
             <h2>Juegos</h2>
+            </div>
+
             <p class="subtitle">Durante los juegos no se recopila ningún tipo de dato personal.</p>
 
             <div class="filtros" id="filtrosContainer">

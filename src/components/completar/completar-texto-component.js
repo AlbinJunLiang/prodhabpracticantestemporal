@@ -336,7 +336,7 @@ h2 {
           </div>
 
           <div class="aplicacion desvanecerse-dentro" id="aplicacion" style="position: relative; display: none; padding: 20px; border: 1px solid #ccc;">
-            <h2>Complete los espacios en blanco.</h2>
+            <h2 id="titulo-juego2"></h2>
             <div class="contenedor-texto" id="contenedorTexto"></div>
             <div class="contenedor-palabras" id="contenedorPalabras"></div>
             <div class="pie-pagina" id="piePagina"></div>
@@ -358,8 +358,15 @@ h2 {
         `;
   }
 
+  static get observedAttributes() {
+    return ["img-intro", "webm-final", "img-rondas", "id-completar"];
+  }
+
+
   async connectedCallback() {
     const tituloJuego = this.shadowRoot.getElementById("titulo-juego");
+    const tituloJuego2 = this.shadowRoot.getElementById("titulo-juego2");
+
     const detallesJuego = this.shadowRoot.getElementById("detalles-juego");
 
     tituloJuego.textContent = "Cargando...";
@@ -370,6 +377,7 @@ h2 {
     this.rondas = data.rondas;
     tituloJuego.textContent = data.descripcion;
     detallesJuego.innerText = data.detalle;
+    tituloJuego2.textContent = data.nombre;
     const pantallaInicio = this.shadowRoot.getElementById("pantallaInicio");
 
 
@@ -386,6 +394,7 @@ h2 {
       btnIniciar.style.opacity = "0.5";
       btnIniciar.style.cursor = "not-allowed";
       tituloJuego.innerHTML = '';
+      tituloJuego2.innerHTML = '';
       detallesJuego.innerHTML = '';
       return;
     }
@@ -660,6 +669,33 @@ h2 {
   }
 
 
+  attributeChangedCallback(nombre, valorAnterior, valorNuevo) {
+    console.log(`Atributo cambiado: ${nombre} = ${valorNuevo}`);
+
+    // Evitar render completo innecesario
+    if (valorAnterior === valorNuevo) return;
+
+    // Actualiza solo lo que necesita
+    if (nombre === "img-intro") {
+      this.shadowRoot.querySelector(".imagen-intro").src = valorNuevo;
+    }
+
+    if (nombre === "img-rondas") {
+      this.shadowRoot
+        .querySelector("#aplicacion img")
+        .setAttribute("src", valorNuevo);
+    }
+
+    if (nombre === "webm-final") {
+      const video = this.shadowRoot.querySelector("video source");
+      video.src = valorNuevo;
+      video.parentElement.load();
+    }
+
+    if (nombre === "id-completar") {
+
+    }
+  }
 
 }
 

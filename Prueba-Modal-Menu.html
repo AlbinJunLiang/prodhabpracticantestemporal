@@ -11,7 +11,13 @@
   <body>
     <button id="abrirModalBtn">Abrir Modal</button>
     <script type="module">
-      import { openMenuJuegos } from "./src/app.js";
+      //    import { openMenuJuegos } from "https://cdn.jsdelivr.net/gh/AlbinJunLiang/prodhabpracticantestemporal@7cfb32e/src/app.js";
+
+      import { openMenuJuegos } from "../src/app.js";
+      import { CONFIG_JUEGO_PRODHAB } from "./src/juegosEnvironments.js";
+
+      CONFIG_JUEGO_PRODHAB.setJsonUrl("juegos.json");
+
       const boton = document.getElementById("abrirModalBtn");
       boton.addEventListener("click", () => {
         openMenuJuegos();

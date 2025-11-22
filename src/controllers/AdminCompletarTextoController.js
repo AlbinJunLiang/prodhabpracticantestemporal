@@ -1,5 +1,5 @@
 import { guardarSubitems, eliminarRonda, crearRonda, obtenerRondasMapeadas, actualizarRonda } from "../services/completarTextoService.js";
-import { validarSubItems, mostrarMensajeModal } from "../util/juegoFunctionUtility.js";
+import { validarSubItems, mostrarMensajeModal, validarYRevertirTitulo } from "../util/juegoFunctionUtility.js";
 import { getJuegoSeleccionado } from "../controllers/AdminJuegosController.js";
 
 export function inicializarCompletarTexto() {
@@ -84,7 +84,7 @@ export function inicializarCompletarTexto() {
             const { titulo, isNew, id } = e.detail;
             if (!isNew) return;
 
-            const ok = utilValidacionesJuegos.validarYRevertirTitulo(
+            const ok = validarYRevertirTitulo(
                 gestor, titulo, id, 600
             );
             if (!ok) return;
@@ -112,7 +112,7 @@ export function inicializarCompletarTexto() {
             const { titulo, isNew, id } = e.detail;
             if (isNew) return;
 
-            const ok = utilValidacionesJuegos.validarYRevertirTitulo(
+            const ok = validarYRevertirTitulo(
                 gestor, titulo, id, 600
             );
             if (!ok) return;
